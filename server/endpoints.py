@@ -18,6 +18,8 @@ ENDPOINT_EP = '/endpoints'
 ENDPOINT_RESP = 'Available endpoints'
 HELLO_EP = '/hello'
 HELLO_RESP = 'hello'
+TITLE_EP = '/title'
+TITLE_RESP = 'Jobless Computer Science Student Analysis (JCSS)'
 
 
 @api.route(HELLO_EP)
@@ -46,3 +48,18 @@ class Endpoints(Resource):
         """
         endpoints = sorted(rule.rule for rule in api.app.url_map.iter_rules())
         return {"Available endpoints": endpoints}
+    
+
+
+
+@api.route(TITLE_EP)
+class Endpoints(Resource):
+    """
+    This class will serve to show the title, and potentially title page for the future
+    """
+    def get(self):
+        """
+        The `get()` method will return the title of our journal
+        """
+        return {"Journal Title": TITLE_RESP}
+
