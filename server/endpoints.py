@@ -53,9 +53,9 @@ class Endpoints(Resource):
 
 
 @api.route(TITLE_EP)
-class Endpoints(Resource):
+class Title(Resource):
     """
-    This class will serve to show the title, and potentially title page for the future
+    This class will serve to show the title, and potentially more operation for the future
     """
     def get(self):
         """
