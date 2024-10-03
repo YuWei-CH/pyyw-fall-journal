@@ -19,7 +19,8 @@ ENDPOINT_RESP = 'Available endpoints'
 HELLO_EP = '/hello'
 HELLO_RESP = 'hello'
 TITLE_EP = '/title'
-TITLE_RESP = 'Jobless Computer Science Student Analysis (JCSS)'
+TITLE_RESP = 'Title'
+TITLE = 'Jobless Computer Science Student Analysis (JCSS)'
 
 
 @api.route(HELLO_EP)
@@ -31,12 +32,11 @@ class HelloWorld(Resource):
     def get(self):
         """
         A trivial endpoint to see if the server is running.
-        It just answers with "hello world."
         """
         return {HELLO_RESP: 'world'}
 
 
-@api.route('/endpoints')
+@api.route(ENDPOINT_EP)
 class Endpoints(Resource):
     """
     This class will serve as live, fetchable documentation of what endpoints
@@ -44,22 +44,20 @@ class Endpoints(Resource):
     """
     def get(self):
         """
-        The `get()` method will return a list of available endpoints.
+        The `get()` method will return a sorted list of available endpoints.
         """
         endpoints = sorted(rule.rule for rule in api.app.url_map.iter_rules())
         return {"Available endpoints": endpoints}
-    
-
 
 
 @api.route(TITLE_EP)
-class Title(Resource):
+class JournalTitle(Resource):
     """
-    This class will serve to show the title, and potentially more operation for the future
+    This class handles creating, reading, updating
+    and deleting the journal title.
     """
     def get(self):
         """
-        The `get()` method will return the title of our journal
+        Retrieve the journal title.
         """
-        return {"Journal Title": TITLE_RESP}
-
+        return {TITLE_RESP: TITLE}
