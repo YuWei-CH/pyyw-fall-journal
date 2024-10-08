@@ -8,7 +8,9 @@ from flask import Flask, render_template  # , request
 from flask_restx import Resource, Api  # Namespace, fields
 from flask_cors import CORS
 
-# import werkzeug.exceptions as wz
+import werkzeug.exceptions as wz
+
+import data.people as ppl
 
 app = Flask(__name__)
 CORS(app)
@@ -72,3 +74,12 @@ class JournalTitle(Resource):
         return {TITLE_RESP: TITLE}
     
 
+@api.route(f'{PEOPLE_EP}/<_id>')
+class PersonDelete(Resource):
+    def delete(self,_id):
+        ret = ppl.delete_person(_id)
+        print(f'{ret=}')
+        if ret is None:
+            wz.NotFound(f'No such person: {_id}')
+        else:
+            return {'Message': ret}
