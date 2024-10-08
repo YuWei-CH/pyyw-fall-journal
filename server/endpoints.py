@@ -24,7 +24,12 @@ TITLE_EP = '/title'
 TITLE_RESP = 'Title'
 TITLE = 'Jobless Computer Science Student Analysis (JCSS)'
 
-INDEX_EP = '/index' #should be set to "/"
+PEOPLE_EP = '/people'
+PUBLISHER = 'Palgave'
+PUBLISHER_RESP = 'Publisher'
+TITLE = 'The Journal of API Technology'
+TITLE_EP = '/title'
+TITLE_RESP = 'Title'
 
 
 @api.route(HELLO_EP)
@@ -65,9 +70,5 @@ class JournalTitle(Resource):
         Retrieve the journal title.
         """
         return {TITLE_RESP: TITLE}
+    
 
-
-
-@app.route(INDEX_EP)
-def index():
-    return render_template('index.html')
