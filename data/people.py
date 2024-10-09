@@ -17,7 +17,7 @@ people_dict = {
         EMAIL: TEST_EMAIL,
     },
     DEL_EMAIL: {
-        NAME: 'Wayne Wang',
+        NAME: 'Yuwei Sun',
         ROLES: [],
         AFFILIATION: 'BJU',
         EMAIL: DEL_EMAIL,
