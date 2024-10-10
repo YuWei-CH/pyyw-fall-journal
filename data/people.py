@@ -34,3 +34,11 @@ def read():
     """
     people = people_dict
     return people
+
+
+def create(name: str, affiliation: str, email: str):
+    if email in people_dict:
+        raise ValueError(f'Adding duplicate {email=}')
+    people_dict[email] = {NAME: name, AFFILIATION: affiliation,
+                          EMAIL: email}
+    return email
