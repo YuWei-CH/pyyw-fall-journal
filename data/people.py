@@ -1,4 +1,5 @@
 MIN_USER_NAME_LEN = 2
+
 # fields
 NAME = 'name'
 ROLES = 'roles'
@@ -8,7 +9,6 @@ EMAIL = 'email'
 TEST_EMAIL = 'testEmail@nyu.edu'
 DEL_EMAIL = 'deleteEmail@nyu.edu'
 
-
 people_dict = {
     TEST_EMAIL: {
         NAME: 'Yuxuan Wang',
@@ -17,27 +17,20 @@ people_dict = {
         EMAIL: TEST_EMAIL,
     },
     DEL_EMAIL: {
-        NAME: 'Wayne Wang',
+        NAME: 'Yuwei Sun',
         ROLES: [],
-        AFFILIATION: 'BJU',
+        AFFILIATION: 'PKU',
         EMAIL: DEL_EMAIL,
     },
 }
 
 
-
-
-
-
-
-#delete function for people
-def delete_person(_id):
-    people = get_people()
-    if _id in people:
-        del people[_id]
-        return _id
-    else:
-        return None
-
-
-
+def read():
+    """
+    Our contract:
+        - No arguments.
+        - Returns a dictionary of users keyed on user email.
+        - Each user email must be the key for another dictionary.
+    """
+    people = people_dict
+    return people
