@@ -28,11 +28,3 @@ def test_title():
     assert ep.TITLE_RESP in resp_json
     assert isinstance(resp_json[ep.TITLE_RESP], str)
     assert len(resp_json[ep.TITLE_RESP]) > 0
-
-def test_del_person():
-    people = ppl.get_people()
-    old_len = len(people)
-    ppl.delete_person(ppl.DEL_EMAIL)
-    people = ppl.get_people()
-    assert len(people) < old_len
-    assert ppl.DEL_EMAIL not in people

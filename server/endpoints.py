@@ -4,7 +4,7 @@ The endpoint called `endpoints` will return all available endpoints.
 """
 # from http import HTTPStatus
 
-from flask import Flask, render_template  # , request
+from flask import Flask  # , request
 from flask_restx import Resource, Api  # Namespace, fields
 from flask_cors import CORS
 
@@ -72,11 +72,11 @@ class JournalTitle(Resource):
         Retrieve the journal title.
         """
         return {TITLE_RESP: TITLE}
-    
+
 
 @api.route(f'{PEOPLE_EP}/<_id>')
 class PersonDelete(Resource):
-    def delete(self,_id):
+    def delete(self, _id):
         ret = ppl.delete_person(_id)
         print(f'{ret=}')
         if ret is None:
