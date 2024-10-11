@@ -42,3 +42,12 @@ def create(name: str, affiliation: str, email: str):
     people_dict[email] = {NAME: name, AFFILIATION: affiliation,
                           EMAIL: email}
     return email
+
+
+def delete(_id):
+    people = read()
+    if _id in people:
+        del people[_id]
+        return _id
+    else:
+        return None
