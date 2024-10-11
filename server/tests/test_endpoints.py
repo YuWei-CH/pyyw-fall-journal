@@ -40,3 +40,12 @@ def test_read():
         assert isinstance(_id, str)
         assert len(_id) > 0
         assert NAME in person
+
+
+def test_delete():
+    people = ppl.read()
+    old_len = len(people)
+    ppl.delete(ppl.DEL_EMAIL)
+    people = ppl.read()
+    assert len(people) < old_len
+    assert ppl.DEL_EMAIL not in people
