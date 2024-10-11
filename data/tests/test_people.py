@@ -28,3 +28,12 @@ def test_create_duplicate():
     with pytest.raises(ValueError):
         ppl.create('Do not care about name',
                           'Or affiliation', ppl.TEST_EMAIL)
+
+
+def test_delete():
+    people = ppl.read()
+    old_len = len(people)
+    ppl.delete(ppl.DEL_EMAIL)
+    people = ppl.read()
+    assert len(people) < old_len
+    assert ppl.DEL_EMAIL not in people
