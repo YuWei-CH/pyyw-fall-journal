@@ -11,6 +11,7 @@ from flask_cors import CORS
 import werkzeug.exceptions as wz
 
 import data.people as ppl
+import data.text as txt
 
 app = Flask(__name__)
 CORS(app)
@@ -27,14 +28,13 @@ TITLE_RESP = 'Title'
 TITLE = 'Jobless Computer Science Student Analysis (JCSS)'
 
 PEOPLE_EP = '/people'
-PUBLISHER = 'Palgave'
+PUBLISHER = 'MisteryForceFromEast'
 PUBLISHER_RESP = 'Publisher'
-TITLE = 'The Journal of API Technology'
-TITLE_EP = '/title'
-TITLE_RESP = 'Title'
 
 MESSAGE = 'message'
 RETURN = 'return'
+
+TEXT_EP = '/text'
 
 
 @api.route(HELLO_EP)
@@ -133,3 +133,15 @@ class PersonDelete(Resource):
             return {'Deleted': ret}
         else:
             raise wz.NotFound(f'No such person: {_id}')
+
+
+@api.route(TEXT_EP)
+class TEXT(Resource):
+    """
+    This class handles reading text.
+    """
+    def get(self):
+        """
+        Retrieve the journal people.
+        """
+        return txt.read()
