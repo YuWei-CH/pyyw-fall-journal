@@ -14,6 +14,7 @@ def test_read():
 
 
 ADD_EMAIL = 'joe@nyu.edu'
+UPDATE_NAME = 'Yuwei Sun'
 
 
 def test_create():
@@ -37,3 +38,18 @@ def test_delete():
     people = ppl.read()
     assert len(people) < old_len
     assert ppl.DEL_EMAIL not in people
+
+
+def test_update_name_blank():
+    with pytest.raises(ValueError):
+        ppl.update_name(ppl.TEST_EMAIL, " ")
+
+
+def test_update_name():
+    people = ppl.read()
+    old_name = people[ppl.TEST_EMAIL][ppl.NAME]
+    ppl.update_name(ppl.TEST_EMAIL, UPDATE_NAME)
+    people = ppl.read()
+    new_name = people[ppl.TEST_EMAIL][ppl.NAME]
+    assert old_name != new_name
+    assert new_name == UPDATE_NAME
