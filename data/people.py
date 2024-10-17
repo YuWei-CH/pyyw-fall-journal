@@ -51,3 +51,13 @@ def delete(_id):
         return _id
     else:
         return None
+
+
+def update_name(_id: str, name: str):
+    if not name.strip():
+        raise ValueError("Name can't be blank")
+    if _id in people_dict:
+        people_dict[_id][NAME] = name
+        return _id
+    else:
+        return None
