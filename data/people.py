@@ -61,3 +61,16 @@ def update_name(_id: str, name: str):
         return _id
     else:
         return None
+
+
+def update_affiliation(_id: str, affiliation: str):
+    """
+    Updates the affiliation of an existing user.
+    """
+    if not affiliation.strip():
+        raise ValueError("Affiliation can't be blank")
+    if _id in people_dict:
+        people_dict[_id][AFFILIATION] = affiliation
+        return _id
+    else:
+        return None
