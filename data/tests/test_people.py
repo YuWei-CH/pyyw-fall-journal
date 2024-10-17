@@ -15,6 +15,7 @@ def test_read():
 
 ADD_EMAIL = 'joe@nyu.edu'
 UPDATE_NAME = 'Yuwei Sun'
+UPDATE_AFFILIATION = "MIT"
 
 
 def test_create():
@@ -53,3 +54,27 @@ def test_update_name():
     new_name = people[ppl.TEST_EMAIL][ppl.NAME]
     assert old_name != new_name
     assert new_name == UPDATE_NAME
+
+
+def test_update_affiliation():
+    """
+    Test the update_affiliation() function to ensure a user's affiliation is updated successfully.
+    """
+    people = ppl.read()
+    old_affiliation = people[ppl.TEST_EMAIL][ppl.AFFILIATION]
+    ppl.update_affiliation(ppl.TEST_EMAIL, UPDATE_AFFILIATION)
+    people = ppl.read()
+    updated_email = ppl.update_affiliation(ppl.TEST_EMAIL, UPDATE_AFFILIATION)
+    new_affiliation = people[ppl.TEST_EMAIL][ppl.AFFILIATION]
+    assert updated_email == ppl.TEST_EMAIL
+    assert people[ppl.TEST_EMAIL][ppl.AFFILIATION] == new_affiliation
+    assert old_affiliation != new_affiliation
+
+
+def test_update_affiliation_blank():
+    """
+    Test the update_affiliation() function to ensure it raises a ValueError when the new affiliation is blank.
+    """
+    with pytest.raises(ValueError):
+        ppl.update_affiliation(ppl.TEST_EMAIL, " ")
+
