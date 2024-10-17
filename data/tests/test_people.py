@@ -49,11 +49,12 @@ def test_update_name_blank():
 def test_update_name():
     people = ppl.read()
     old_name = people[ppl.TEST_EMAIL][ppl.NAME]
-    ppl.update_name(ppl.TEST_EMAIL, UPDATE_NAME)
+    updated_email = ppl.update_name(ppl.TEST_EMAIL, UPDATE_NAME)
     people = ppl.read()
     new_name = people[ppl.TEST_EMAIL][ppl.NAME]
     assert old_name != new_name
     assert new_name == UPDATE_NAME
+    assert updated_email == ppl.TEST_EMAIL
 
 
 def test_update_affiliation():
@@ -62,12 +63,11 @@ def test_update_affiliation():
     """
     people = ppl.read()
     old_affiliation = people[ppl.TEST_EMAIL][ppl.AFFILIATION]
-    ppl.update_affiliation(ppl.TEST_EMAIL, UPDATE_AFFILIATION)
-    people = ppl.read()
     updated_email = ppl.update_affiliation(ppl.TEST_EMAIL, UPDATE_AFFILIATION)
+    people = ppl.read()
     new_affiliation = people[ppl.TEST_EMAIL][ppl.AFFILIATION]
     assert updated_email == ppl.TEST_EMAIL
-    assert people[ppl.TEST_EMAIL][ppl.AFFILIATION] == new_affiliation
+    assert new_affiliation == UPDATE_AFFILIATION
     assert old_affiliation != new_affiliation
 
 
