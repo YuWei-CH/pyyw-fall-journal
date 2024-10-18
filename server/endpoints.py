@@ -33,6 +33,7 @@ PUBLISHER_RESP = 'Publisher'
 
 MESSAGE = 'message'
 RETURN = 'return'
+DELETED = 'Deleted'
 
 TEXT_EP = '/text'
 
@@ -133,7 +134,7 @@ class PersonDelete(Resource):
     def delete(self, _id):
         ret = ppl.delete(_id)
         if ret is not None:
-            return {'Deleted': ret}
+            return {DELETED: ret}
         else:
             raise wz.NotFound(f'No such person: {_id}')
 

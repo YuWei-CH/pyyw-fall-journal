@@ -44,12 +44,9 @@ def test_read_people():
 
 
 def test_delete_people():
-    people = ppl.read()
-    old_len = len(people)
-    ppl.delete(ppl.DEL_EMAIL)
-    people = ppl.read()
-    assert len(people) < old_len
-    assert ppl.DEL_EMAIL not in people
+    resp = TEST_CLIENT.delete(f'{ep.PEOPLE_EP}/{ppl.DEL_EMAIL}')
+    resp_json = resp.get_json()
+    assert resp_json[ep.DELETED] == ppl.DEL_EMAIL
 
 
 def test_read_text():
