@@ -36,6 +36,9 @@ RETURN = 'return'
 
 TEXT_EP = '/text'
 
+FIELD = 'field'
+VALUE = 'value'
+
 
 @api.route(HELLO_EP)
 class HelloWorld(Resource):
@@ -145,3 +148,44 @@ class TEXT(Resource):
         Retrieve the journal people.
         """
         return txt.read()
+
+
+PEOPLE_UPDATE_FLDS = api.model('UpdatePeopleEntry', {
+    ppl.EMAIL: fields.String,
+    FIELD: fields.String,
+    VALUE: fields.String,
+})
+
+
+@api.route(f'{PEOPLE_EP}/update')
+class PersonUpdate(Resource):
+    """
+    This class handles the update of a person's information.
+    """
+    @api.response(HTTPStatus.OK, 'Success. ')
+    @api.response(HTTPStatus.NOT_FOUND, 'No such person. ')
+    @api.response(HTTPStatus.NOT_ACCEPTABLE, 'Not acceptable. ')
+    @api.expect(PEOPLE_UPDATE_FLDS)
+    def put(self):
+        """
+        Update person information.
+        """
+        try:
+            field = request.json.get(FIELD)
+            value = request.json.get(VALUE)
+            email = request.json.get(ppl.EMAIL)
+            if field == ppl.NAME:
+                ret = ppl.update_name(email, value)
+            elif field == ppl.AFFILIATION:
+                ret = ppl.update_affiliation(email, value)
+            else:
+                raise ValueError("Invalid field name. ")
+        except Exception as err:
+            raise wz.NotAcceptable(f'Could not update person: '
+                                   f'{err=}')
+        if ret is None:
+            raise wz.NotFound(f'No such person: {email}')
+        return {
+            MESSAGE: f'{field} updated for {email}!',
+            RETURN: ret,
+        }
