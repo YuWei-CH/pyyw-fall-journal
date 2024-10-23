@@ -1,3 +1,7 @@
+import re
+import data.roles as rls
+
+
 MIN_USER_NAME_LEN = 2
 
 # fields
@@ -24,6 +28,12 @@ people_dict = {
     },
 }
 
+#for re check
+CHAR_OR_DIGIT = '[A-Za-z0-9]'
+
+def is_valid_email(email: str) -> bool:
+    return re.match(f"{CHAR_OR_DIGIT}.*@{CHAR_OR_DIGIT}.*", email)
+
 
 def read():
     """
@@ -35,6 +45,15 @@ def read():
     people = people_dict
     return people
 
+def is_valid_person(name: str, affiliation: str, email: str,
+                    role: str) -> bool:
+    if email in people_dict:
+        raise ValueError(f'Adding duplicate {email=}')
+    if not is_valid_email(email):
+        raise ValueError(f'Invalid email: {email}')
+    if not rls.is_valid(role):
+        raise ValueError(f'Invalid role: {role}')
+    return True
 
 def create(name: str, affiliation: str, email: str):
     if email in people_dict:
@@ -74,3 +93,6 @@ def update_affiliation(_id: str, affiliation: str):
         return _id
     else:
         return None
+
+
+
