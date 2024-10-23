@@ -10,5 +10,3 @@ def test_read():
     for _key, content in text.items():
         assert isinstance(_key, str)
         assert txt.KEY in content
-        
-
