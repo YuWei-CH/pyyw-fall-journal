@@ -58,3 +58,10 @@ def delete(key: str):
         return key
     else:
         return None
+
+
+def create(key: str, title: str, text: str):
+    if key in text_dict:
+        raise ValueError(f'Adding duplicate {key=}')
+    text_dict[key] = {TITLE: title, TEXT: text}
+    return key
