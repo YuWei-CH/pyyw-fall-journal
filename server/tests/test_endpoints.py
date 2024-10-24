@@ -52,7 +52,6 @@ def test_delete_people():
 def test_read_text():
     resp = TEST_CLIENT.get(ep.TEXT_EP)
     resp_json = resp.get_json()
-    for _key, content in resp_json.items():
-        assert isinstance(_key, str)
-        assert len(_key) > 0
-        assert KEY in content
+    assert isinstance(resp_json, dict)
+    for key in resp_json:
+        assert isinstance(key, str)

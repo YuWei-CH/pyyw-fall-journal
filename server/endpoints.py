@@ -140,7 +140,7 @@ class PersonDelete(Resource):
 
 
 @api.route(TEXT_EP)
-class TEXT(Resource):
+class Text(Resource):
     """
     This class handles reading text.
     """
