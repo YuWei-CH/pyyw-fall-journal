@@ -1,3 +1,4 @@
+import pytest
 import data.text as txt
 
 def test_read():
@@ -27,3 +28,20 @@ def test_delete():
 def test_delete_not_found():
     result = txt.delete('Not a page key!')
     assert result is None
+
+
+Contact_KEY = 'ContactUs'
+
+
+def test_create():
+    text = txt.read()
+    assert Contact_KEY not in text
+    txt.create(Contact_KEY, 'Contact Us', 'This is a Contact page.')
+    people = txt.read()
+    assert Contact_KEY in people
+
+
+def test_create_duplicate():
+    with pytest.raises(ValueError):
+        txt.create(txt.TEST_KEY,
+                          "Not care", "Nothing")
