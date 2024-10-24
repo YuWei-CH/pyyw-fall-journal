@@ -46,3 +46,15 @@ def read_one(key: str) -> dict:
     if key in text_dict:
         result = text_dict[key]
     return result
+
+
+def delete(key: str):
+    """
+    Deletes a page entry from the text dictionary.
+    """
+    texts = read()
+    if key in texts:
+        del texts[key]
+        return key
+    else:
+        return None
