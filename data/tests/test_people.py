@@ -2,6 +2,95 @@ import pytest
 
 import data.people as ppl
 
+
+COMPLETE = "football@nba.edu"
+NO_NAME = '@nba.edu'
+NO_AT = 'football'
+NO_DOMAIN = 'football@'
+SPEC_CHAR = "wayne#e@nba.edu"
+UND_SCR = "wayne_ll@nba.edu"
+DOT = "wayne.ll@nba.edu"
+DASH = "wayne-ll@nba.edu"
+DASH_DOMAIN = "wayne@nba-nfl.edu"
+DOT_START = ".wayne@nba.edu"
+DASH_END = "wayne-@nba.edu"
+CONSECUTIVE_DOTS = "wayne..ll@nba.edu"
+DOMAIN_DOMAIN_MISSING = "wayne@nba"
+DOMAIN_SPEC_CHR = "wayne@nba!#!?nfl.edu"
+DOMAIN_CONSEC_DOTS = "wayne@nba..edu"
+DOMAIN_START_DOTS = "wayne@.nba.edu"
+DOMAIN_2_CHR_LESS = "wayne@nba.e"
+DOMAIN_2_CHR_MORE = "wayne@nba.edsd"
+
+
+def test_is_mail_valid_full():
+    assert ppl.is_valid_email(COMPLETE)
+
+
+def test_is_mail_valid_atless():
+    assert not ppl.is_valid_email(NO_AT)
+
+
+def test_is_mail_valid_nameless():
+    assert not ppl.is_valid_email(NO_NAME)
+
+
+def test_is_mail_valid_domainless():
+    assert not ppl.is_valid_email(NO_DOMAIN)
+
+
+def test_has_special_chars():
+    assert not ppl.is_valid_email(SPEC_CHAR)
+
+
+def test_has_underscore():
+    assert ppl.is_valid_email(UND_SCR)
+
+
+def test_has_dot():
+    assert ppl.is_valid_email(DOT)
+
+
+def test_has_dash():
+    assert ppl.is_valid_email(DASH)
+
+
+def test_domain_with_dash():
+    assert ppl.is_valid_email(DASH_DOMAIN)
+
+
+def test_start_with_dot():
+    assert not ppl.is_valid_email(DOT_START)
+
+
+def test_consecutive_dots():
+    assert not ppl.is_valid_email(CONSECUTIVE_DOTS)
+
+
+def test_domain_missing_last():
+    assert not ppl.is_valid_email(DOMAIN_DOMAIN_MISSING)
+
+
+def test_domain_special_char():
+    assert not ppl.is_valid_email(DOMAIN_SPEC_CHR)
+
+
+def test_domain_consecutive_dot():
+    assert not ppl.is_valid_email(DOMAIN_CONSEC_DOTS)
+
+
+def test_domain_start_with_dot():
+    assert not ppl.is_valid_email(DOMAIN_START_DOTS)
+
+
+def test_domain_less_than_two_char():
+    assert not ppl.is_valid_email(DOMAIN_2_CHR_LESS)
+
+
+def test_domain_more_than_two_char():
+    assert ppl.is_valid_email(DOMAIN_2_CHR_MORE)
+
+
 def test_read():
     people = ppl.read()
     assert isinstance(people, dict)
