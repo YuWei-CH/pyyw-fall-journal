@@ -33,7 +33,13 @@ CHAR_OR_DIGIT = '[A-Za-z0-9]'
 
 
 def is_valid_email(email: str) -> bool:
-    return re.match(f"{CHAR_OR_DIGIT}.*@{CHAR_OR_DIGIT}.*", email)
+    pattern = (
+        rf"^(?!.*\.\.)"                    # no consecutive '.'
+        rf"{CHAR_OR_DIGIT}[a-zA-Z0-9._%+-]*"
+        rf"@{CHAR_OR_DIGIT}[a-zA-Z0-9.-]*"
+        r"\.[a-zA-Z]{2,10}$"
+    )
+    return bool(re.match(pattern, email))
 
 
 def read():
