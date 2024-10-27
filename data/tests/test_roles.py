@@ -13,3 +13,8 @@ def test_get_roles():
 
 def test_is_valid():
     assert rls.is_valid(rls.TEST_CODE)
+
+
+def test_get_masthead_roles():
+    mh_roles = rls.get_masthead_roles()
+    assert isinstance(mh_roles, dict)

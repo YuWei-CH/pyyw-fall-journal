@@ -166,4 +166,3 @@ def test_update_affiliation_blank():
     """
     with pytest.raises(ValueError):
         ppl.update_affiliation(ppl.TEST_EMAIL, " ")
-
