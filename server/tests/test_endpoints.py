@@ -20,6 +20,7 @@ TEST_CLIENT = ep.app.test_client()
 import data.people as ppl
 import data.tests.test_people as ppl_test
 import data.tests.test_text as txt_test
+import data.text as txt
 from data.text import *
 
 def test_hello():
@@ -145,3 +146,15 @@ def test_create_text():
     resp_json = resp.get_json()
     assert isinstance(resp_json, dict)
     assert resp_json[ep.RETURN] == txt_test.Contact_KEY
+
+
+def test_delete_text():
+    # Ensure the text entry exists before deleting
+    texts = txt.read()
+    assert txt.DEL_KEY in texts
+
+    # Send DELETE request
+    resp = TEST_CLIENT.delete(f'{ep.TEXT_EP}/{txt.DEL_KEY}')
+    resp_json = resp.get_json()
+    assert resp.status_code == OK
+    assert resp_json[ep.DELETED] == txt.DEL_KEY
