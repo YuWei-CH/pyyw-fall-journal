@@ -41,6 +41,10 @@ def get_masthead_roles() -> dict:
     return mh_roles
 
 
+def get_role_codes() -> list:
+    return list(ROLES.keys())
+
+
 def main():
     print(get_roles())
     print(get_masthead_roles())
