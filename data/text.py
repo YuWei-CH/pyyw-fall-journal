@@ -65,3 +65,10 @@ def create(key: str, title: str, text: str):
         raise ValueError(f'Adding duplicate {key=}')
     text_dict[key] = {TITLE: title, TEXT: text}
     return key
+
+
+def update(key: str, title: str, text: str):
+    if key not in text_dict:
+        raise ValueError(f'{key} do not exist')
+    text_dict[key] = {TITLE: title, TEXT: text}
+    return key

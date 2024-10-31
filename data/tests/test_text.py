@@ -1,5 +1,6 @@
 import pytest
 import data.text as txt
+from data.text import TEST_KEY, TITLE, TEXT
 
 def test_read():
     texts = txt.read()
@@ -45,3 +46,18 @@ def test_create_duplicate():
     with pytest.raises(ValueError):
         txt.create(txt.TEST_KEY,
                           "Not care", "Nothing")
+
+
+new_title = 'NBA Front Page'
+new_text = 'new season coming up. Go Phoenix!'
+
+
+def test_update():
+    text = txt.read()
+    assert TEST_KEY in text
+    old_title = text[TEST_KEY][TITLE]
+    old_text = text[TEST_KEY][TEXT]
+    assert old_title != new_title
+    assert old_text != new_text
+    txt.update(TEST_KEY, new_title, new_text)
+
