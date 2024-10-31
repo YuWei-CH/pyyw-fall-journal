@@ -74,3 +74,56 @@ def test_create_people():
     resp_json = resp.get_json()
     assert isinstance(resp_json, dict)
     assert resp_json[ep.RETURN] == ppl_test.ADD_EMAIL
+
+
+UPDATE_NAME_TEST_DATA = {
+    EMAIL: ppl.TEST_EMAIL,
+    ep.FIELD: NAME,
+    ep.VALUE: "Yirong Wang",
+}
+
+
+def test_update_name():
+    resp = TEST_CLIENT.put(
+        f'{ep.PEOPLE_EP}/update',
+        data=json.dumps(UPDATE_NAME_TEST_DATA),
+        content_type='application/json'
+    )
+    resp_json = resp.get_json()
+    assert isinstance(resp_json, dict)
+    assert resp_json[ep.RETURN] == ppl.TEST_EMAIL
+
+
+UPDATE_AFFILIATION_TEST_DATA = {
+    EMAIL: ppl.TEST_EMAIL,
+    ep.FIELD: AFFILIATION,
+    ep.VALUE: "USC",
+}
+
+
+def test_update_affiliation():
+    resp = TEST_CLIENT.put(
+        f'{ep.PEOPLE_EP}/update',
+        data=json.dumps(UPDATE_AFFILIATION_TEST_DATA),
+        content_type='application/json'
+    )
+    resp_json = resp.get_json()
+    assert isinstance(resp_json, dict)
+    assert resp_json[ep.RETURN] == ppl.TEST_EMAIL
+
+
+UPDATE_TEST_DATA_INVALID = {
+    EMAIL: ppl.TEST_EMAIL,
+    ep.FIELD: "Invalid Field. ",
+    ep.VALUE: "Do not care about value. ",
+}
+
+
+def test_update_invalid_field():
+    resp = TEST_CLIENT.put(
+        f'{ep.PEOPLE_EP}/update',
+        data=json.dumps(UPDATE_TEST_DATA_INVALID),
+        content_type='application/json'
+    )
+    resp_json = resp.get_json()
+    assert "ValueError" in resp_json[ep.MESSAGE]
