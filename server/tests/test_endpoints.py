@@ -9,15 +9,16 @@ from http.client import (
 
 from unittest.mock import patch
 
-import pytest
+import pytest, json
 
-from data.people import NAME 
+from data.people import NAME, AFFILIATION, EMAIL
 
 import server.endpoints as ep
 
 TEST_CLIENT = ep.app.test_client()
 
 import data.people as ppl
+import data.tests.test_people as ppl_test
 from data.text import *
 
 def test_hello():
@@ -55,3 +56,21 @@ def test_read_text():
     assert isinstance(resp_json, dict)
     for key in resp_json:
         assert isinstance(key, str)
+
+
+CREATE_TEST_DATA = {
+    NAME: "Test Name",
+    AFFILIATION: "Test Affiliation",
+    EMAIL: ppl_test.ADD_EMAIL,
+}
+
+
+def test_create_people():
+    resp = TEST_CLIENT.put(
+        f'{ep.PEOPLE_EP}/create',
+        data=json.dumps(CREATE_TEST_DATA),
+        content_type='application/json'
+    )
+    resp_json = resp.get_json()
+    assert isinstance(resp_json, dict)
+    assert resp_json[ep.RETURN] == ppl_test.ADD_EMAIL
