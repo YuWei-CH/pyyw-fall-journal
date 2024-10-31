@@ -223,3 +223,15 @@ class TextCreate(Resource):
             MESSAGE: 'Text added!',
             RETURN: ret,
         }
+
+
+@api.route(f'{TEXT_EP}/<key>')
+class TextDelete(Resource):
+    @api.response(HTTPStatus.OK, 'Success.')
+    @api.response(HTTPStatus.NOT_FOUND, 'No such text.')
+    def delete(self, key):
+        ret = txt.delete(key)
+        if ret is not None:
+            return {DELETED: ret}
+        else:
+            raise wz.NotFound(f'No such text: {key}')
