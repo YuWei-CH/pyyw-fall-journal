@@ -190,3 +190,36 @@ class PersonUpdate(Resource):
             MESSAGE: f'{field} updated for {email}!',
             RETURN: ret,
         }
+
+
+TEXT_CREATE_FLDS = api.model('AddNewTextEntry', {
+    txt.TITLE: fields.String,
+    txt.TEXT: fields.String,
+    txt.KEY: fields.String,
+})
+
+
+@api.route(f'{TEXT_EP}/create')
+class TextCreate(Resource):
+    """
+    Add a Text to the journal db.
+    """
+    @api.response(HTTPStatus.OK, 'Success. ')
+    @api.response(HTTPStatus.NOT_ACCEPTABLE, 'Not acceptable. ')
+    @api.expect(TEXT_CREATE_FLDS)
+    def put(self):
+        """
+        Add a text.
+        """
+        try:
+            title = request.json.get(txt.TITLE)
+            text = request.json.get(txt.TEXT)
+            key = request.json.get(txt.KEY)
+            ret = txt.create(key, title, text)
+        except Exception as err:
+            raise wz.NotAcceptable(f'Could not add text: '
+                                   f'{err=}')
+        return {
+            MESSAGE: 'Text added!',
+            RETURN: ret,
+        }
