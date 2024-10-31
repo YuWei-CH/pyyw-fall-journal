@@ -19,6 +19,7 @@ TEST_CLIENT = ep.app.test_client()
 
 import data.people as ppl
 import data.tests.test_people as ppl_test
+import data.tests.test_text as txt_test
 from data.text import *
 
 def test_hello():
@@ -127,3 +128,20 @@ def test_update_invalid_field():
     )
     resp_json = resp.get_json()
     assert "ValueError" in resp_json[ep.MESSAGE]
+
+TEXT_CREATE_TEST_DATA = {
+    TITLE: "Test Text",
+    TEXT: "Hello, World!",
+    KEY: txt_test.Contact_KEY,
+}
+
+
+def test_create_text():
+    resp = TEST_CLIENT.put(
+        f'{ep.TEXT_EP}/create',
+        data=json.dumps(TEXT_CREATE_TEST_DATA),
+        content_type='application/json'
+    )
+    resp_json = resp.get_json()
+    assert isinstance(resp_json, dict)
+    assert resp_json[ep.RETURN] == txt_test.Contact_KEY
