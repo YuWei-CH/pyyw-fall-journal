@@ -61,3 +61,9 @@ def test_update():
     assert old_text != new_text
     txt.update(TEST_KEY, new_title, new_text)
 
+
+FALSE_KEY = 'wrong page'
+def test_update_false():
+    with pytest.raises(ValueError):
+        txt.update(FALSE_KEY, new_title, new_text)
+
