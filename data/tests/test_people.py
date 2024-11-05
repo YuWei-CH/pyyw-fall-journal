@@ -1,6 +1,7 @@
 import pytest
 
 import data.people as ppl
+from data.roles import TEST_CODE
 
 
 COMPLETE = "football@nba.edu"
@@ -21,6 +22,15 @@ DOMAIN_CONSEC_DOTS = "wayne@nba..edu"
 DOMAIN_START_DOTS = "wayne@.nba.edu"
 DOMAIN_2_CHR_LESS = "wayne@nba.e"
 DOMAIN_2_CHR_MORE = "wayne@nba.edsd"
+
+TEMP_EMAIL = 'temp_person@temp.org'
+
+
+@pytest.fixture(scope='function')
+def temp_person():
+    _id = ppl.create('Peter Peter', 'PKU', TEMP_EMAIL, TEST_CODE)
+    yield _id
+    ppl.delete(_id)
 
 
 def test_is_mail_valid_full():
@@ -166,3 +176,11 @@ def test_update_affiliation_blank():
     """
     with pytest.raises(ValueError):
         ppl.update_affiliation(ppl.TEST_EMAIL, " ")
+
+
+VALID_ROLES = ['ED', 'AU']
+
+
+@pytest.mark.skip('Skipping cause the update method for people is not done to take in roles.')
+def test_update(temp_person):
+    ppl.update('Buffalo Bill', 'UBuffalo', temp_person, VALID_ROLES)

@@ -1,7 +1,6 @@
 import re
 import data.roles as rls
 
-
 MIN_USER_NAME_LEN = 2
 
 # fields
@@ -12,6 +11,7 @@ EMAIL = 'email'
 
 TEST_EMAIL = 'testEmail@nyu.edu'
 DEL_EMAIL = 'deleteEmail@nyu.edu'
+
 
 people_dict = {
     TEST_EMAIL: {
