@@ -235,3 +235,15 @@ class TextDelete(Resource):
             return {DELETED: ret}
         else:
             raise wz.NotFound(f'No such text: {key}')
+
+
+MASTHEAD = 'Masthead'
+
+
+@api.route(f'{PEOPLE_EP}/masthead')
+class Masthead(Resource):
+    """
+    Get a journal's masthead.
+    """
+    def get(self):
+        return {MASTHEAD: ppl.get_masthead()}
