@@ -2,6 +2,7 @@ import pytest
 
 import data.people as ppl
 from data.roles import TEST_CODE
+import data.roles as rls
 
 
 COMPLETE = "football@nba.edu"
@@ -176,6 +177,37 @@ def test_update_affiliation_blank():
     """
     with pytest.raises(ValueError):
         ppl.update_affiliation(ppl.TEST_EMAIL, " ")
+
+
+MOCK_ROLES = {
+        'editor': 'Editor',
+        'author': 'Author'
+    }
+MAKE_PEOPLE = {
+        '1': {'name': 'Alice', 'role': 'editor'},
+        '2': {'name': 'Bob', 'role': 'author'},
+        '3': {'name': 'Charlie', 'role': 'editor'}
+    }
+GET_MASTHEAD_ROLES = 'get_masthead_roles'
+READ = 'read'
+EDITOR = 'Editor'
+AUTHOR = 'Author'
+
+def test_get_masthead(monkeypatch):
+    mock_roles = MOCK_ROLES
+    mock_people = MAKE_PEOPLE
+    def mock_get_masthead_roles():
+        return mock_roles
+    def mock_read():
+        return mock_people
+    monkeypatch.setattr(rls, GET_MASTHEAD_ROLES, mock_get_masthead_roles)
+    monkeypatch.setattr(ppl, READ, mock_read)
+    masthead = ppl.get_masthead()
+    assert isinstance(masthead, dict)
+    assert EDITOR in masthead
+    assert AUTHOR in masthead
+    assert masthead[EDITOR] == []
+    assert masthead[AUTHOR] == []
 
 
 VALID_ROLES = ['ED', 'AU']
