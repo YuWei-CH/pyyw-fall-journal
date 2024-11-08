@@ -2,6 +2,8 @@
 """
 This module manages person roles for a journal.
 """
+from copy import deepcopy
+
 AUTHOR_CODE = 'AU'
 EDITOR_CODE = 'ED'
 REFREE_CODE = 'RE'
@@ -23,7 +25,7 @@ MH_ROLES = [EDITOR_CODE, MNG_EDITOR_CODE, CP_EDITOR_CODE]
 
 
 def get_roles() -> dict:
-    return ROLES
+    return deepcopy(ROLES)
 
 
 def is_valid(code: str) -> bool:
