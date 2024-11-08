@@ -3,25 +3,25 @@ This module interfaces to our user data.
 """
 
 # fields
-KEY = 'key'
+PAGE_NUMBER = 'pageNumber'
 TITLE = 'title'
 TEXT = 'text'
 EMAIL = 'email'
 
-TEST_KEY = 'HomePage'
-SUBM_KEY = 'SubmissionsPage'
-DEL_KEY = 'DeletePage'
+TEST_PAGE_NUMBER = 'HomePage'
+SUBM_PAGE_NUMBER = 'SubmissionsPage'
+DEL_PAGE_NUMBER = 'DeletePage'
 
 text_dict = {
-    TEST_KEY: {
+    TEST_PAGE_NUMBER: {
         TITLE: 'Home Page',
         TEXT: 'This is a journal about building API servers.',
     },
-    SUBM_KEY: {
+    SUBM_PAGE_NUMBER: {
         TITLE: 'Submissions Page',
         TEXT: 'All submissions must be original work in Word format.',
     },
-    DEL_KEY: {
+    DEL_PAGE_NUMBER: {
         TITLE: 'Delete Page',
         TEXT: 'This is a text to delete.',
     },
@@ -32,43 +32,43 @@ def read():
     """
     Our contract:
         - No arguments.
-        - Returns a dictionary of users keyed on user email.
-        - Each user email must be the key for another dictionary.
+        - Returns a dictionary of users page_number on user email.
+        - Each user email must be the page_number for another dictionary.
     """
     text = text_dict
     return text
 
 
-def read_one(key: str) -> dict:
-    # This should take a key and return the page dictionary
-    # for that key. Return an empty dictionary of key not found.
+def read_one(page_number: str) -> dict:
+    # This should take a page number and return the page dictionary
+    # for that page number. Return an empty dictionary of number not found.
     result = {}
-    if key in text_dict:
-        result = text_dict[key]
+    if page_number in text_dict:
+        result = text_dict[page_number]
     return result
 
 
-def delete(key: str):
+def delete(page_number: str):
     """
     Deletes a page entry from the text dictionary.
     """
     texts = read()
-    if key in texts:
-        del texts[key]
-        return key
+    if page_number in texts:
+        del texts[page_number]
+        return page_number
     else:
         return None
 
 
-def create(key: str, title: str, text: str):
-    if key in text_dict:
-        raise ValueError(f'Adding duplicate {key=}')
-    text_dict[key] = {TITLE: title, TEXT: text}
-    return key
+def create(page_number: str, title: str, text: str):
+    if page_number in text_dict:
+        raise ValueError(f'Adding duplicate {page_number=}')
+    text_dict[page_number] = {TITLE: title, TEXT: text}
+    return page_number
 
 
-def update(key: str, title: str, text: str):
-    if key not in text_dict:
-        raise ValueError(f'{key} do not exist')
-    text_dict[key] = {TITLE: title, TEXT: text}
-    return key
+def update(page_number: str, title: str, text: str):
+    if page_number not in text_dict:
+        raise ValueError(f'{page_number} do not exist')
+    text_dict[page_number] = {TITLE: title, TEXT: text}
+    return page_number

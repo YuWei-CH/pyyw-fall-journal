@@ -1,29 +1,29 @@
 import pytest
 import data.text as txt
-from data.text import TEST_KEY, TITLE, TEXT
+from data.text import TEST_PAGE_NUMBER, TITLE, TEXT
 
 def test_read():
     texts = txt.read()
     assert isinstance(texts, dict)
-    for key in texts:
-        assert isinstance(key, str)
+    for page_number in texts:
+        assert isinstance(page_number, str)
 
 
 def test_read_one():
-    assert len(txt.read_one(txt.TEST_KEY)) > 0
+    assert len(txt.read_one(txt.TEST_PAGE_NUMBER)) > 0
 
 
 def test_read_one_not_found():
-    assert txt.read_one('Not a page key!') == {}
+    assert txt.read_one('Not a page number!') == {}
 
 
 def test_delete():
     texts = txt.read()
     old_len = len(texts)
-    txt.delete(txt.DEL_KEY)
+    txt.delete(txt.DEL_PAGE_NUMBER)
     texts = txt.read()
     assert len(texts) < old_len
-    assert txt.DEL_KEY not in texts
+    assert txt.DEL_PAGE_NUMBER not in texts
 
 
 def test_delete_not_found():
@@ -44,7 +44,7 @@ def test_create():
 
 def test_create_duplicate():
     with pytest.raises(ValueError):
-        txt.create(txt.TEST_KEY,
+        txt.create(txt.TEST_PAGE_NUMBER,
                           "Not care", "Nothing")
 
 
@@ -54,16 +54,16 @@ new_text = 'new season coming up. Go Phoenix!'
 
 def test_update():
     text = txt.read()
-    assert TEST_KEY in text
-    old_title = text[TEST_KEY][TITLE]
-    old_text = text[TEST_KEY][TEXT]
+    assert TEST_PAGE_NUMBER in text
+    old_title = text[TEST_PAGE_NUMBER][TITLE]
+    old_text = text[TEST_PAGE_NUMBER][TEXT]
     assert old_title != new_title
     assert old_text != new_text
-    txt.update(TEST_KEY, new_title, new_text)
+    txt.update(TEST_PAGE_NUMBER, new_title, new_text)
 
 
-FALSE_KEY = 'wrong page'
+FALSE_PAGE_NUMBER = 'wrong page'
 def test_update_false():
     with pytest.raises(ValueError):
-        txt.update(FALSE_KEY, new_title, new_text)
+        txt.update(FALSE_PAGE_NUMBER, new_title, new_text)
 

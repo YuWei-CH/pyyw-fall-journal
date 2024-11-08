@@ -195,7 +195,7 @@ class PersonUpdate(Resource):
 TEXT_CREATE_FLDS = api.model('AddNewTextEntry', {
     txt.TITLE: fields.String,
     txt.TEXT: fields.String,
-    txt.KEY: fields.String,
+    txt.PAGE_NUMBER: fields.String,
 })
 
 
@@ -214,8 +214,8 @@ class TextCreate(Resource):
         try:
             title = request.json.get(txt.TITLE)
             text = request.json.get(txt.TEXT)
-            key = request.json.get(txt.KEY)
-            ret = txt.create(key, title, text)
+            page_number = request.json.get(txt.PAGE_NUMBER)
+            ret = txt.create(page_number, title, text)
         except Exception as err:
             raise wz.NotAcceptable(f'Could not add text: '
                                    f'{err=}')
@@ -225,16 +225,16 @@ class TextCreate(Resource):
         }
 
 
-@api.route(f'{TEXT_EP}/<key>')
+@api.route(f'{TEXT_EP}/<page_number>')
 class TextDelete(Resource):
     @api.response(HTTPStatus.OK, 'Success.')
     @api.response(HTTPStatus.NOT_FOUND, 'No such text.')
-    def delete(self, key):
-        ret = txt.delete(key)
+    def delete(self, page_number):
+        ret = txt.delete(page_number)
         if ret is not None:
             return {DELETED: ret}
         else:
-            raise wz.NotFound(f'No such text: {key}')
+            raise wz.NotFound(f'No such text: {page_number}')
 
 
 MASTHEAD = 'Masthead'

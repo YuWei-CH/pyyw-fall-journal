@@ -133,7 +133,7 @@ def test_update_invalid_field():
 TEXT_CREATE_TEST_DATA = {
     TITLE: "Test Text",
     TEXT: "Hello, World!",
-    KEY: txt_test.Contact_KEY,
+    PAGE_NUMBER: txt_test.Contact_KEY,
 }
 
 
@@ -151,10 +151,10 @@ def test_create_text():
 def test_delete_text():
     # Ensure the text entry exists before deleting
     texts = txt.read()
-    assert txt.DEL_KEY in texts
+    assert txt.DEL_PAGE_NUMBER in texts
 
     # Send DELETE request
-    resp = TEST_CLIENT.delete(f'{ep.TEXT_EP}/{txt.DEL_KEY}')
+    resp = TEST_CLIENT.delete(f'{ep.TEXT_EP}/{txt.DEL_PAGE_NUMBER}')
     resp_json = resp.get_json()
     assert resp.status_code == OK
-    assert resp_json[ep.DELETED] == txt.DEL_KEY
+    assert resp_json[ep.DELETED] == txt.DEL_PAGE_NUMBER
