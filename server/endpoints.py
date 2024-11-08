@@ -247,3 +247,39 @@ class Masthead(Resource):
     """
     def get(self):
         return {MASTHEAD: ppl.get_masthead()}
+
+
+TEXT_UPDATE_FLDS = api.model('UpdateTextEntry', {
+    txt.PAGE_NUMBER: fields.String,
+    txt.TITLE: fields.String,
+    txt.TEXT: fields.String,
+})
+
+
+@api.route(f'{TEXT_EP}/update')
+class TextUpdate(Resource):
+    """
+    This class handles the update of a text's information.
+    """
+    @api.response(HTTPStatus.OK, 'Success. ')
+    @api.response(HTTPStatus.NOT_FOUND, 'No such page. ')
+    @api.response(HTTPStatus.NOT_ACCEPTABLE, 'Not acceptable. ')
+    @api.expect(TEXT_UPDATE_FLDS)
+    def put(self):
+        """
+        Update text information.
+        """
+        try:
+            page_number = request.json.get(txt.PAGE_NUMBER)
+            title = request.json.get(txt.TITLE)
+            text = request.json.get(txt.TEXT)
+            ret = txt.update(page_number, title, text)
+        except Exception as err:
+            raise wz.NotAcceptable(f'Could not update text: '
+                                   f'{err=}')
+        if ret is None:
+            raise wz.NotFound(f'No such page: {page_number}')
+        return {
+            MESSAGE: f'text updated for {page_number}!',
+            RETURN: ret,
+        }
