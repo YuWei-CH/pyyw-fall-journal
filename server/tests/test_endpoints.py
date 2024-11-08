@@ -158,3 +158,22 @@ def test_delete_text():
     resp_json = resp.get_json()
     assert resp.status_code == OK
     assert resp_json[ep.DELETED] == txt.DEL_PAGE_NUMBER
+
+
+UPDATE_TEXT_DATA = {
+    txt.PAGE_NUMBER: txt.TEST_PAGE_NUMBER,
+    txt.TITLE: "Updated Title",
+    txt.TEXT: "Updated Text",
+}
+
+
+def test_update_text():
+    resp = TEST_CLIENT.put(
+        f'{ep.TEXT_EP}/update',
+        data=json.dumps(UPDATE_TEXT_DATA),
+        content_type='application/json'
+    )
+    assert resp.status_code == OK
+    resp_json = resp.get_json()
+    assert isinstance(resp_json, dict)
+    assert resp_json[ep.RETURN] == txt.TEST_PAGE_NUMBER
