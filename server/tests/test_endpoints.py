@@ -51,13 +51,20 @@ def test_delete_people():
     resp_json = resp.get_json()
     assert resp_json[ep.DELETED] == ppl.DEL_EMAIL
 
-
-def test_read_text():
+@patch('data.text.read', autospec=True,
+       return_value={'page_number': {TITLE: 'Test Title', TEXT: 'Test Text'}})
+def test_read_text(mock_read):
     resp = TEST_CLIENT.get(ep.TEXT_EP)
+    assert resp.status_code == OK
     resp_json = resp.get_json()
     assert isinstance(resp_json, dict)
-    for key in resp_json:
-        assert isinstance(key, str)
+    for _page_number, text in resp_json.items():
+        assert isinstance(_page_number, str)
+        assert len(_page_number) > 0
+        assert TITLE in text
+        assert text[TITLE] == 'Test Title'
+        assert TEXT in text
+        assert text[TEXT] == 'Test Text'
 
 
 CREATE_TEST_DATA = {

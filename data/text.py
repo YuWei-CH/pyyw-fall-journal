@@ -6,7 +6,6 @@ This module interfaces to our user data.
 PAGE_NUMBER = 'pageNumber'
 TITLE = 'title'
 TEXT = 'text'
-EMAIL = 'email'
 
 TEST_PAGE_NUMBER = 'HomePage'
 SUBM_PAGE_NUMBER = 'SubmissionsPage'

@@ -185,7 +185,3 @@ def test_get_masthead():
 
 VALID_ROLES = ['ED', 'AU']
 
-
-@pytest.mark.skip('Skipping cause the update method for people is not done to take in roles.')
-def test_update(temp_person):
-    ppl.update('Buffalo Bill', 'UBuffalo', temp_person, VALID_ROLES)
