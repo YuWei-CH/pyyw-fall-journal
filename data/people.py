@@ -1,5 +1,6 @@
 import re
 import data.roles as rls
+from data.roles import MNG_EDITOR_CODE, EDITOR_CODE
 
 MIN_USER_NAME_LEN = 2
 
@@ -16,13 +17,13 @@ DEL_EMAIL = 'deleteEmail@nyu.edu'
 people_dict = {
     TEST_EMAIL: {
         NAME: 'Yuxuan Wang',
-        ROLES: [],
+        ROLES: [MNG_EDITOR_CODE],
         AFFILIATION: 'THU',
         EMAIL: TEST_EMAIL,
     },
     DEL_EMAIL: {
         NAME: 'Yuwei Sun',
-        ROLES: [],
+        ROLES: [EDITOR_CODE],
         AFFILIATION: 'PKU',
         EMAIL: DEL_EMAIL,
     },
@@ -104,6 +105,22 @@ def update_affiliation(_id: str, affiliation: str):
         return None
 
 
+def has_role(person: dict, role):
+    if role in person.get(ROLES):
+        return True
+    return False
+
+
+MH_FIELDS = [NAME, AFFILIATION]
+
+
+def create_mh_rec(person: dict) -> dict:
+    mh_rec = {}
+    for field in MH_FIELDS:
+        mh_rec[field] = person.get(field, '')
+    return mh_rec
+
+
 def get_masthead() -> dict:
     masthead = {}
     mh_roles = rls.get_masthead_roles()
@@ -111,8 +128,8 @@ def get_masthead() -> dict:
         people_w_role = []
         people = read()
         for _id, person in people.items():
-            # if has_role(person, mh_role):
-            #     rec = create_mh_rec(person)
-            #     people_w_role.append(rec)
+            if has_role(person, mh_role):
+                rec = create_mh_rec(person)
+                people_w_role.append(rec)
             masthead[text] = people_w_role
     return masthead
