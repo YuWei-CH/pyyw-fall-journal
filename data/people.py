@@ -110,6 +110,16 @@ def has_role(person, role):
     return False
 
 
+MH_FIELDS = [NAME, AFFILIATION]
+
+
+def create_mh_rec(person: dict) -> dict:
+    mh_rec = {}
+    for field in MH_FIELDS:
+        mh_rec[field] = person.get(field, '')
+    return mh_rec
+
+
 def get_masthead() -> dict:
     masthead = {}
     mh_roles = rls.get_masthead_roles()
@@ -117,8 +127,8 @@ def get_masthead() -> dict:
         people_w_role = []
         people = read()
         for _id, person in people.items():
-            # if has_role(person, mh_role):
-            #   rec = create_mh_rec(person)
-            #   people_w_role.append(rec)
+            if has_role(person, mh_role):
+              rec = create_mh_rec(person)
+              people_w_role.append(rec)
             masthead[text] = people_w_role
     return masthead
