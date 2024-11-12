@@ -46,11 +46,6 @@ def test_read_people():
         assert NAME in person
 
 
-def test_delete_people():
-    resp = TEST_CLIENT.delete(f'{ep.PEOPLE_EP}/{ppl.DEL_EMAIL}')
-    resp_json = resp.get_json()
-    assert resp_json[ep.DELETED] == ppl.DEL_EMAIL
-
 @patch('data.text.read', autospec=True,
        return_value={'page_number': {TITLE: 'Test Title', TEXT: 'Test Text'}})
 def test_read_text(mock_read):
@@ -66,11 +61,11 @@ def test_read_text(mock_read):
         assert TEXT in text
         assert text[TEXT] == 'Test Text'
 
-
+New_Email = "new@nyu.edu"
 CREATE_TEST_DATA = {
     NAME: "Test Name",
     AFFILIATION: "Test Affiliation",
-    EMAIL: ppl_test.ADD_EMAIL,
+    EMAIL: New_Email,
 }
 
 
@@ -82,8 +77,12 @@ def test_create_people():
     )
     resp_json = resp.get_json()
     assert isinstance(resp_json, dict)
-    assert resp_json[ep.RETURN] == ppl_test.ADD_EMAIL
+    assert resp_json[ep.RETURN] == New_Email
 
+def test_delete_people():
+    resp = TEST_CLIENT.delete(f'{ep.PEOPLE_EP}/{New_Email}')
+    resp_json = resp.get_json()
+    assert resp_json[ep.DELETED] == New_Email
 
 UPDATE_NAME_TEST_DATA = {
     EMAIL: ppl.TEST_EMAIL,
@@ -137,10 +136,11 @@ def test_update_invalid_field():
     resp_json = resp.get_json()
     assert "ValueError" in resp_json[ep.MESSAGE]
 
+New_Page_Number = "Next Page" 
 TEXT_CREATE_TEST_DATA = {
     TITLE: "Test Text",
     TEXT: "Hello, World!",
-    PAGE_NUMBER: txt_test.Contact_KEY,
+    PAGE_NUMBER: New_Page_Number,
 }
 
 
@@ -152,19 +152,19 @@ def test_create_text():
     )
     resp_json = resp.get_json()
     assert isinstance(resp_json, dict)
-    assert resp_json[ep.RETURN] == txt_test.Contact_KEY
+    assert resp_json[ep.RETURN] == New_Page_Number
 
 
 def test_delete_text():
     # Ensure the text entry exists before deleting
     texts = txt.read()
-    assert txt.DEL_PAGE_NUMBER in texts
+    assert New_Page_Number in texts
 
     # Send DELETE request
-    resp = TEST_CLIENT.delete(f'{ep.TEXT_EP}/{txt.DEL_PAGE_NUMBER}')
+    resp = TEST_CLIENT.delete(f'{ep.TEXT_EP}/{New_Page_Number}')
     resp_json = resp.get_json()
     assert resp.status_code == OK
-    assert resp_json[ep.DELETED] == txt.DEL_PAGE_NUMBER
+    assert resp_json[ep.DELETED] == New_Page_Number
 
 
 UPDATE_TEXT_DATA = {
