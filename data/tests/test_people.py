@@ -117,6 +117,11 @@ UPDATE_NAME = 'Yuwei Sun'
 UPDATE_AFFILIATION = "MIT"
 
 
+def test_get_masthead():
+    mh = ppl.get_masthead()
+    assert isinstance(mh, dict)
+
+
 def test_create():
     people = ppl.read()
     assert ADD_EMAIL not in people
@@ -176,11 +181,6 @@ def test_update_affiliation_blank():
     """
     with pytest.raises(ValueError):
         ppl.update_affiliation(ppl.TEST_EMAIL, " ")
-
-
-def test_get_masthead():
-    mh = ppl.get_masthead()
-    assert isinstance(mh, dict)
 
 
 VALID_ROLES = ['ED', 'AU']
