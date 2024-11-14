@@ -115,6 +115,7 @@ def test_read():
 ADD_EMAIL = 'joe@nyu.edu'
 UPDATE_NAME = 'Yuwei Sun'
 UPDATE_AFFILIATION = "MIT"
+UPDATE_ROLE_CODE = "CH"
 
 
 def test_get_masthead():
@@ -183,4 +184,38 @@ def test_update_affiliation_blank():
         ppl.update_affiliation(ppl.TEST_EMAIL, " ")
 
 
+def test_add_role():
+    """
+    Test the add_role() function
+    """
+    people = ppl.read()
+    old_roles = people[ppl.TEST_EMAIL][ppl.ROLES]
+    assert UPDATE_ROLE_CODE not in old_roles
+    _id = ppl.add_role(ppl.TEST_EMAIL, UPDATE_ROLE_CODE)
+    assert _id != None
+    new_roles = people[ppl.TEST_EMAIL][ppl.ROLES]
+    assert UPDATE_ROLE_CODE in new_roles
 
+
+def test_add_blank_role():
+    """
+    Test the add_role() function with blank role
+    """
+    people = ppl.read()
+    old_roles = people[ppl.TEST_EMAIL][ppl.ROLES]
+    assert UPDATE_ROLE_CODE in old_roles
+    with pytest.raises(ValueError):
+        _id = ppl.add_role(ppl.TEST_EMAIL, "")
+        assert _id == None
+
+
+def test_add_duplicate_role():
+    """
+    Test the add_role() function with duplicate role
+    """
+    people = ppl.read()
+    old_roles = people[ppl.TEST_EMAIL][ppl.ROLES]
+    assert UPDATE_ROLE_CODE in old_roles
+    with pytest.raises(ValueError):
+        _id = ppl.add_role(ppl.TEST_EMAIL, UPDATE_ROLE_CODE)
+        assert _id == None
