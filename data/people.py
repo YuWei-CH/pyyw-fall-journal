@@ -133,3 +133,18 @@ def get_masthead() -> dict:
                 people_w_role.append(rec)
             masthead[text] = people_w_role
     return masthead
+
+
+def add_role(_id: str, role: str):
+    """
+    Add a role of an existing user.
+    """
+    if not role.strip():
+        raise ValueError("Can't add an empty role")
+    if _id in people_dict:
+        if role in people_dict[_id][ROLES]:
+            raise ValueError("Can't add a duplicate role")
+        people_dict[_id][ROLES].append(role)
+        return _id
+    else:
+        return None

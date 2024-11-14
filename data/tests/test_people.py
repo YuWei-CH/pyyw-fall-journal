@@ -183,5 +183,4 @@ def test_update_affiliation_blank():
         ppl.update_affiliation(ppl.TEST_EMAIL, " ")
 
 
-VALID_ROLES = ['ED', 'AU']
 
