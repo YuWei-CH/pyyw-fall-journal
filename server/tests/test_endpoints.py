@@ -11,7 +11,7 @@ from unittest.mock import patch
 
 import pytest, json
 
-from data.people import NAME, AFFILIATION, EMAIL
+from data.people import NAME, AFFILIATION, EMAIL, ROLES
 
 import server.endpoints as ep
 
@@ -21,6 +21,7 @@ import data.people as ppl
 import data.tests.test_people as ppl_test
 import data.tests.test_text as txt_test
 import data.text as txt
+import data.roles as rls
 from data.text import *
 
 def test_hello():
@@ -61,11 +62,13 @@ def test_read_text(mock_read):
         assert TEXT in text
         assert text[TEXT] == 'Test Text'
 
+
 New_Email = "new@nyu.edu"
 CREATE_TEST_DATA = {
     NAME: "Test Name",
     AFFILIATION: "Test Affiliation",
     EMAIL: New_Email,
+    ROLES: rls.TEST_CODE
 }
 
 
@@ -79,10 +82,12 @@ def test_create_people():
     assert isinstance(resp_json, dict)
     assert resp_json[ep.RETURN] == New_Email
 
+
 def test_delete_people():
     resp = TEST_CLIENT.delete(f'{ep.PEOPLE_EP}/{New_Email}')
     resp_json = resp.get_json()
     assert resp_json[ep.DELETED] == New_Email
+
 
 UPDATE_NAME_TEST_DATA = {
     EMAIL: ppl.TEST_EMAIL,
@@ -135,6 +140,7 @@ def test_update_invalid_field():
     )
     resp_json = resp.get_json()
     assert "ValueError" in resp_json[ep.MESSAGE]
+
 
 New_Page_Number = "Next Page" 
 TEXT_CREATE_TEST_DATA = {

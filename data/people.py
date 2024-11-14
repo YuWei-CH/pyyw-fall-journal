@@ -65,12 +65,16 @@ def is_valid_person(name: str, affiliation: str, email: str,
     return True
 
 
-def create(name: str, affiliation: str, email: str):
+def create(name: str, affiliation: str, email: str, role: str):
     if email in people_dict:
         raise ValueError(f'Adding duplicate {email=}')
-    people_dict[email] = {NAME: name, AFFILIATION: affiliation,
-                          EMAIL: email}
-    return email
+    if is_valid_person(name, affiliation, email, role=role):
+        roles = []
+        if role:
+            roles.append(role)
+        people_dict[email] = {NAME: name, AFFILIATION: affiliation,
+                              EMAIL: email, ROLES: roles}
+        return email
 
 
 def delete(_id):

@@ -126,7 +126,7 @@ def test_get_masthead():
 def test_create():
     people = ppl.read()
     assert ADD_EMAIL not in people
-    ppl.create('Joe Smith', 'NYU', ADD_EMAIL)
+    ppl.create('Joe Smith', 'NYU', ADD_EMAIL, TEST_CODE)
     people = ppl.read()
     assert ADD_EMAIL in people
 
@@ -134,7 +134,7 @@ def test_create():
 def test_create_duplicate():
     with pytest.raises(ValueError):
         ppl.create('Do not care about name',
-                          'Or affiliation', ppl.TEST_EMAIL)
+                          'Or affiliation', ppl.TEST_EMAIL, TEST_CODE)
 
 
 def test_delete():
