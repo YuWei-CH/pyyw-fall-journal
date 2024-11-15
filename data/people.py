@@ -157,3 +157,18 @@ def add_role(_id: str, role: str):
         return _id
     else:
         return None
+
+
+def delete_role(_id: str, role: str):
+    """
+    Delete a role from an existing user.
+    """
+    if not role.strip():
+        raise ValueError("Can't delete an empty role")
+    if _id in people_dict:
+        if role not in people_dict[_id][ROLES]:
+            raise ValueError("Role not found")
+        people_dict[_id][ROLES].remove(role)
+        return _id
+    else:
+        return None
