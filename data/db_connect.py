@@ -7,6 +7,8 @@ CLOUD = "1"
 
 GAME_DB = 'gamesDB'
 
+SE_DB = 'seDB'
+
 client = None
 
 MONGO_ID = '_id'
@@ -35,6 +37,14 @@ def connect_db():
         else:
             print("Connecting to Mongo locally.")
             client = pm.MongoClient()
+
+
+def create(collection, doc, db=SE_DB):
+    """
+    Insert a single doc into collection.
+    """
+    print(f'{db=}')
+    return client[db][collection].insert_one(doc)
 
 
 def insert_one(collection, doc, db=GAME_DB):
@@ -73,6 +83,26 @@ def fetch_all(collection, db=GAME_DB):
     for doc in client[db][collection].find():
         ret.append(doc)
     return ret
+
+
+def read(collection, db=SE_DB, no_id=True) -> list:
+    """
+    Returns a list from the db.
+    """
+    ret = []
+    for doc in client[db][collection].find():
+        if no_id:
+            del doc[MONGO_ID]
+        ret.append(doc)
+    return ret
+
+
+def read_dict(collection, key, db=SE_DB, no_id=True) -> dict:
+    recs = read(collection, db=db, no_id=no_id)
+    recs_as_dict = {}
+    for rec in recs:
+        recs_as_dict[rec[key]] = rec
+    return recs_as_dict
 
 
 def fetch_all_as_dict(key, collection, db=GAME_DB):
