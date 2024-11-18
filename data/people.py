@@ -1,8 +1,11 @@
 import re
 import data.roles as rls
+import data.db_connect as dbc
 from data.roles import MNG_EDITOR_CODE, EDITOR_CODE
 
 MIN_USER_NAME_LEN = 2
+
+PEOPLE_COLLECT = 'people'
 
 # fields
 NAME = 'name'
@@ -31,6 +34,10 @@ people_dict = {
 
 # for re check
 CHAR_OR_DIGIT = '[A-Za-z0-9]'
+
+
+client = dbc.connect_db()
+print(f'{client=}')
 
 
 def is_valid_email(email: str) -> bool:
@@ -79,6 +86,20 @@ def create(name: str, affiliation: str, email: str, role: str):
             roles.append(role)
         people_dict[email] = {NAME: name, AFFILIATION: affiliation,
                               EMAIL: email, ROLES: roles}
+        return email
+
+
+def create_database(name: str, affiliation: str, email: str, role: str):
+    if email in people_dict:
+        raise ValueError(f'Adding duplicate {email=}')
+    if is_valid_person(name, affiliation, email, role=role):
+        roles = []
+        if role:
+            roles.append(role)
+        person = {NAME: name, AFFILIATION: affiliation,
+                  EMAIL: email, ROLES: roles}
+        print(person)
+        dbc.create(PEOPLE_COLLECT, person)
         return email
 
 
