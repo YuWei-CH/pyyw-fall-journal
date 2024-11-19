@@ -129,16 +129,16 @@ class PersonCreate(Resource):
         }
 
 
-@api.route(f'{PEOPLE_EP}/<_id>')
+@api.route(f'{PEOPLE_EP}/<email>')
 class PersonDelete(Resource):
     @api.response(HTTPStatus.OK, 'Success. ')
     @api.response(HTTPStatus.NOT_FOUND, 'No such person. ')
-    def delete(self, _id):
-        ret = ppl.delete(_id)
+    def delete(self, email):
+        ret = ppl.delete(email)
         if ret is not None:
             return {DELETED: ret}
         else:
-            raise wz.NotFound(f'No such person: {_id}')
+            raise wz.NotFound(f'No such person: {email}')
 
 
 @api.route(TEXT_EP)

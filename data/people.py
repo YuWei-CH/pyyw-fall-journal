@@ -57,7 +57,8 @@ def read():
         - Returns a dictionary of users keyed on user email.
         - Each user email must be the key for another dictionary.
     """
-    people = people_dict
+    people = dbc.read_dict(PEOPLE_COLLECT, EMAIL)
+    print(f'{people=}')
     return people
 
 
@@ -84,55 +85,37 @@ def create(name: str, affiliation: str, email: str, role: str):
         roles = []
         if role:
             roles.append(role)
-        people_dict[email] = {NAME: name, AFFILIATION: affiliation,
-                              EMAIL: email, ROLES: roles}
-        return email
-
-
-def create_database(name: str, affiliation: str, email: str, role: str):
-    if email in people_dict:
-        raise ValueError(f'Adding duplicate {email=}')
-    if is_valid_person(name, affiliation, email, role=role):
-        roles = []
-        if role:
-            roles.append(role)
-        person = {NAME: name, AFFILIATION: affiliation,
-                  EMAIL: email, ROLES: roles}
+        person = {
+            NAME: name,
+            AFFILIATION: affiliation,
+            EMAIL: email,
+            ROLES: [role]
+        }
         print(person)
         dbc.create(PEOPLE_COLLECT, person)
         return email
 
 
-def delete(_id):
-    people = read()
-    if _id in people:
-        del people[_id]
-        return _id
-    else:
-        return None
+def delete(email):
+    return dbc.del_one(PEOPLE_COLLECT, {EMAIL: email})
 
 
-def update_name(_id: str, name: str):
+def update_name(email: str, name: str):
     if not name.strip():
         raise ValueError("Name can't be blank")
-    if _id in people_dict:
-        people_dict[_id][NAME] = name
-        return _id
-    else:
-        return None
+    result = dbc.update_doc(PEOPLE_COLLECT, {EMAIL:email}, {NAME: name})
+    if result.matched_count > 0:
+        return email
+    return None
 
 
-def update_affiliation(_id: str, affiliation: str):
-    """
-    Updates the affiliation of an existing user.
-    """
+def update_affiliation(email: str, affiliation: str):
     if not affiliation.strip():
-        raise ValueError("Affiliation can't be blank")
-    if _id in people_dict:
-        people_dict[_id][AFFILIATION] = affiliation
-        return _id
-    else:
-        return None
+        raise ValueError("Name can't be blank")
+    result = dbc.update_doc(PEOPLE_COLLECT, {EMAIL:email}, {AFFILIATION: affiliation})
+    if result.matched_count > 0:
+        return email
+    return None
 
 
 def has_role(person: dict, role):
@@ -165,31 +148,27 @@ def get_masthead() -> dict:
     return masthead
 
 
-def add_role(_id: str, role: str):
-    """
-    Add a role of an existing user.
-    """
+def add_role(email: str, role: str):
     if not role.strip():
         raise ValueError("Can't add an empty role")
-    if _id in people_dict:
-        if role in people_dict[_id][ROLES]:
-            raise ValueError("Can't add a duplicate role")
-        people_dict[_id][ROLES].append(role)
-        return _id
-    else:
-        return None
+    person = dbc.fetch_one(PEOPLE_COLLECT, {EMAIL: email})
+    if not person:
+        raise ValueError(f"Person {email} not found")
+    if role in person.get(ROLES, []):
+        raise ValueError("Can't add a duplicate role")
+    updated_roles = person[ROLES] + [role]
+    dbc.update_doc(PEOPLE_COLLECT, {EMAIL: email}, {ROLES: updated_roles})
+    return email
 
 
-def delete_role(_id: str, role: str):
-    """
-    Delete a role from an existing user.
-    """
+def delete_role(email: str, role: str):
     if not role.strip():
         raise ValueError("Can't delete an empty role")
-    if _id in people_dict:
-        if role not in people_dict[_id][ROLES]:
-            raise ValueError("Role not found")
-        people_dict[_id][ROLES].remove(role)
-        return _id
-    else:
-        return None
+    person = dbc.fetch_one(PEOPLE_COLLECT, {EMAIL: email})
+    if not person:
+        raise ValueError(f"Person {email} not found")
+    if role not in person.get(ROLES, []):
+        raise ValueError("Role not found")
+    updated_roles = [r for r in person[ROLES] if r != role]
+    dbc.update_doc(PEOPLE_COLLECT, {EMAIL: email}, {ROLES: updated_roles})
+    return email
