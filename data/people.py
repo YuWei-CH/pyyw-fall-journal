@@ -42,6 +42,9 @@ people_db = dbc.read_dict(PEOPLE_COLLECT, EMAIL)
 for person in people_dict:
     if person not in people_db:
         dbc.create(PEOPLE_COLLECT, people_dict[person])
+    else:
+        dbc.del_one(PEOPLE_COLLECT, {EMAIL: person})
+        dbc.create(PEOPLE_COLLECT, people_dict[person])
 
 
 def is_valid_email(email: str) -> bool:

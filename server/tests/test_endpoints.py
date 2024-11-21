@@ -125,6 +125,20 @@ def test_update_affiliation():
     assert resp_json[ep.RETURN] == ppl.TEST_EMAIL
 
 
+ADD_TEST_ROLE_DATA = {
+    EMAIL: ppl.TEST_EMAIL,
+    ep.ROLE: "RE"
+}
+
+def test_add_role():
+    resp = TEST_CLIENT.put(
+        f'{ep.PEOPLE_EP}/add_role',
+        data=json.dumps(ADD_TEST_ROLE_DATA),
+        content_type='application/json'
+    )
+    resp_json = resp.get_json()
+    assert resp_json[ep.RETURN] == ppl.TEST_EMAIL
+
 UPDATE_TEST_DATA_INVALID = {
     EMAIL: ppl.TEST_EMAIL,
     ep.FIELD: "Invalid Field. ",
