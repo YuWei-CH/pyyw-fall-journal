@@ -40,6 +40,8 @@ TEXT_EP = '/text'
 FIELD = 'field'
 VALUE = 'value'
 
+ROLE = 'role'
+
 
 @api.route(HELLO_EP)
 class HelloWorld(Resource):
@@ -190,6 +192,38 @@ class PersonUpdate(Resource):
             raise wz.NotFound(f'No such person: {email}')
         return {
             MESSAGE: f'{field} updated for {email}!',
+            RETURN: ret,
+        }
+
+
+PEOPLE_ROLE_ADD_FLDS = api.model('AddNewRoleEntry', {
+    ppl.EMAIL: fields.String,
+    ROLE: fields.String,
+})
+
+
+@api.route(f'{PEOPLE_EP}/add_role')
+class PersonAddRole(Resource):
+    """
+    This class handles the update of a people's role (ADD).
+    """
+    @api.response(HTTPStatus.OK, 'Success. ')
+    @api.response(HTTPStatus.NOT_FOUND, 'No such page. ')
+    @api.response(HTTPStatus.NOT_ACCEPTABLE, 'Not acceptable. ')
+    @api.expect(PEOPLE_ROLE_ADD_FLDS)
+    def put(self):
+        """
+        Add people role.
+        """
+        try:
+            email = request.json.get(ppl.EMAIL)
+            role = request.json.get(ROLE)
+            ret = ppl.add_role(email, role)
+        except Exception as err:
+            raise wz.NotAcceptable(f'Could not update role: '
+                                   f'{err=}')
+        return {
+            MESSAGE: f'{role} updated for {email}!',
             RETURN: ret,
         }
 
