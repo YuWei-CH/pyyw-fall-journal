@@ -129,6 +129,7 @@ def test_create():
     ppl.create('Joe Smith', 'NYU', ADD_EMAIL, TEST_CODE)
     people = ppl.read()
     assert ADD_EMAIL in people
+    ppl.delete(ADD_EMAIL)
 
 
 def test_create_duplicate():
@@ -193,6 +194,7 @@ def test_add_role():
     assert UPDATE_ROLE_CODE not in old_roles
     _id = ppl.add_role(ppl.TEST_EMAIL, UPDATE_ROLE_CODE)
     assert _id != None
+    people = ppl.read()
     new_roles = people[ppl.TEST_EMAIL][ppl.ROLES]
     assert UPDATE_ROLE_CODE in new_roles
 
@@ -259,5 +261,6 @@ def test_delete_role_nonexistent_user():
     Test deleting a role from a non-existent user
     """
     nonexistent_email = 'nonexistent@domain.com'
-    _id = ppl.delete_role(nonexistent_email, UPDATE_ROLE_CODE)
-    assert _id is None
+    with pytest.raises(ValueError):
+        _id = ppl.delete_role(nonexistent_email, UPDATE_ROLE_CODE)
+        assert _id is None

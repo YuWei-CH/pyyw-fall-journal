@@ -35,6 +35,7 @@ def connect_db():
         else:
             print("Connecting to Mongo locally.")
             client = pm.MongoClient()
+        return client
 
 
 def create(collection, doc, db=SE_DB):

@@ -16,7 +16,14 @@ EMAIL = 'email'
 TEST_EMAIL = 'testEmail@nyu.edu'
 DEL_EMAIL = 'deleteEmail@nyu.edu'
 
+# for re check
+CHAR_OR_DIGIT = '[A-Za-z0-9]'
 
+
+client = dbc.connect_db()
+print(f'{client=}')
+
+# Initialization
 people_dict = {
     TEST_EMAIL: {
         NAME: 'Yuxuan Wang',
@@ -31,13 +38,10 @@ people_dict = {
         EMAIL: DEL_EMAIL,
     },
 }
-
-# for re check
-CHAR_OR_DIGIT = '[A-Za-z0-9]'
-
-
-client = dbc.connect_db()
-print(f'{client=}')
+people_db = dbc.read_dict(PEOPLE_COLLECT, EMAIL)
+for person in people_dict:
+    if person not in people_db:
+        dbc.create(PEOPLE_COLLECT, people_dict[person])
 
 
 def is_valid_email(email: str) -> bool:
@@ -64,7 +68,8 @@ def read():
 
 def is_valid_person(name: str, affiliation: str, email: str,
                     role: str = None, roles: list = None) -> bool:
-    if email in people_dict:
+    people_db = dbc.read_dict(PEOPLE_COLLECT, EMAIL)
+    if email in people_db:
         raise ValueError(f'Adding duplicate {email=}')
     if not is_valid_email(email):
         raise ValueError(f'Invalid email: {email}')
@@ -79,7 +84,8 @@ def is_valid_person(name: str, affiliation: str, email: str,
 
 
 def create(name: str, affiliation: str, email: str, role: str):
-    if email in people_dict:
+    people_db = dbc.read_dict(PEOPLE_COLLECT, EMAIL)
+    if email in people_db:
         raise ValueError(f'Adding duplicate {email=}')
     if is_valid_person(name, affiliation, email, role=role):
         roles = []
@@ -97,13 +103,14 @@ def create(name: str, affiliation: str, email: str, role: str):
 
 
 def delete(email):
-    return dbc.del_one(PEOPLE_COLLECT, {EMAIL: email})
+    del_num = dbc.del_one(PEOPLE_COLLECT, {EMAIL: email})
+    return email if del_num == 1 else None
 
 
 def update_name(email: str, name: str):
     if not name.strip():
         raise ValueError("Name can't be blank")
-    result = dbc.update_doc(PEOPLE_COLLECT, {EMAIL:email}, {NAME: name})
+    result = dbc.update_doc(PEOPLE_COLLECT, {EMAIL: email}, {NAME: name})
     if result.matched_count > 0:
         return email
     return None
@@ -112,7 +119,8 @@ def update_name(email: str, name: str):
 def update_affiliation(email: str, affiliation: str):
     if not affiliation.strip():
         raise ValueError("Name can't be blank")
-    result = dbc.update_doc(PEOPLE_COLLECT, {EMAIL:email}, {AFFILIATION: affiliation})
+    result = dbc.update_doc(PEOPLE_COLLECT, {EMAIL: email},
+                            {AFFILIATION: affiliation})
     if result.matched_count > 0:
         return email
     return None
