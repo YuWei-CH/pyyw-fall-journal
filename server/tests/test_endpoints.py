@@ -113,6 +113,7 @@ ADD_TEST_ROLE_DATA = {
     ep.ROLE: "RE"
 }
 
+
 def test_add_role():
     resp = TEST_CLIENT.put(
         f'{ep.PEOPLE_EP}/add_role',
@@ -121,6 +122,36 @@ def test_add_role():
     )
     resp_json = resp.get_json()
     assert resp_json[ep.RETURN] == ppl.TEST_EMAIL
+
+
+DELETE_TEST_ROLE_DATA = {
+    EMAIL: ppl.TEST_EMAIL,
+    ep.ROLE: "RE"
+}
+
+
+def test_delete_role():
+    # First, ensure the role exists (setup step, assuming add_role works)
+    TEST_CLIENT.put(
+        f'{ep.PEOPLE_EP}/add_role',
+        data=json.dumps(DELETE_TEST_ROLE_DATA),
+        content_type='application/json'
+    )
+
+    # Now, test deleting the role
+    resp = TEST_CLIENT.delete(
+        f'{ep.PEOPLE_EP}/delete_role',
+        data=json.dumps(DELETE_TEST_ROLE_DATA),
+        content_type='application/json'
+    )
+    resp_json = resp.get_json()
+    
+    # Assert that the correct email is returned after deletion
+    assert resp_json[ep.RETURN] == ppl.TEST_EMAIL
+
+    # Assert that the role is no longer present (validation step)
+    person = ppl.dbc.fetch_one(ppl.PEOPLE_COLLECT, {EMAIL: ppl.TEST_EMAIL})
+    assert ep.ROLE not in person.get(ppl.ROLES, [])
 
 
 New_Page_Number = "Next Page" 
