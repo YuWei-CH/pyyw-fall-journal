@@ -189,8 +189,8 @@ def test_delete_text():
 
 UPDATE_TEXT_DATA = {
     txt.PAGE_NUMBER: txt.TEST_PAGE_NUMBER,
-    txt.TITLE: "Updated Title",
-    txt.TEXT: "Updated Text",
+    ep.FIELD: txt.TITLE, 
+    ep.VALUE: "New Test Title",
 }
 
 

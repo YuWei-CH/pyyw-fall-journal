@@ -287,8 +287,8 @@ class Masthead(Resource):
 
 TEXT_UPDATE_FLDS = api.model('UpdateTextEntry', {
     txt.PAGE_NUMBER: fields.String,
-    txt.TITLE: fields.String,
-    txt.TEXT: fields.String,
+    FIELD: fields.String,
+    VALUE: fields.String,
 })
 
 
@@ -307,15 +307,13 @@ class TextUpdate(Resource):
         """
         try:
             page_number = request.json.get(txt.PAGE_NUMBER)
-            title = request.json.get(txt.TITLE)
-            text = request.json.get(txt.TEXT)
-            ret = txt.update(page_number, title, text)
+            field = request.json.get(FIELD)
+            value = request.json.get(VALUE)
+            txt.update(page_number, field, value)
         except Exception as err:
             raise wz.NotAcceptable(f'Could not update text: '
                                    f'{err=}')
-        if ret is None:
-            raise wz.NotFound(f'No such page: {page_number}')
         return {
             MESSAGE: f'text updated for {page_number}!',
-            RETURN: ret,
+            RETURN: page_number,
         }

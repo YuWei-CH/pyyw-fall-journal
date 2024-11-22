@@ -66,8 +66,10 @@ def create(page_number: str, title: str, text: str):
     return page_number
 
 
-def update(page_number: str, title: str, text: str):
+def update(page_number: str, field: str, value: str):
     if page_number not in text_dict:
         raise ValueError(f'{page_number} do not exist')
-    text_dict[page_number] = {TITLE: title, TEXT: text}
+    if field != TITLE and field != TEXT:
+        raise ValueError(f'{field} is not a valid field to update')
+    text_dict[page_number][field] = value
     return page_number

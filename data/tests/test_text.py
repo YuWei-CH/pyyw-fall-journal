@@ -51,26 +51,34 @@ def test_create_duplicate():
         txt.create(txt.TEST_PAGE_NUMBER,
                           "Not care", "Nothing")
 
-new_title = "New Test Title"
-new_text = "New Test Text"
 
-def test_update(temp_text):
+NEW_TITLE = "New Test Title"
+NEW_TEXT = "New Test Text"
+
+
+def test_update_title():
     text = txt.read()
-    assert temp_text in text
-    old_entry = txt.read_one(temp_text)
-    assert old_entry[TITLE] != new_title
-    assert old_entry[TEXT] != new_text
-    txt.update(temp_text, new_title, new_text)
-    updated_entry = txt.read_one(temp_text)
-    assert updated_entry[TITLE] == new_title
-    assert updated_entry[TEXT] == new_text
+    old_title = text[txt.TEST_PAGE_NUMBER][txt.TITLE]
+    updated_page_number = txt.update(txt.TEST_PAGE_NUMBER, txt.TITLE, NEW_TITLE)
+    text = txt.read()
+    new_title = text[txt.TEST_PAGE_NUMBER][txt.TITLE]
+    assert old_title != new_title
+    assert new_title == NEW_TITLE
+    assert updated_page_number == txt.TEST_PAGE_NUMBER
+
+
+def test_update_text():
+    text = txt.read()
+    old_text = text[txt.TEST_PAGE_NUMBER][txt.TEXT]
+    updated_page_number = txt.update(txt.TEST_PAGE_NUMBER, txt.TEXT, NEW_TEXT)
+    text = txt.read()
+    new_text = text[txt.TEST_PAGE_NUMBER][txt.TEXT]
+    assert old_text != new_text
+    assert new_text == NEW_TEXT
+    assert updated_page_number == txt.TEST_PAGE_NUMBER
+
 
 FALSE_PAGE_NUMBER = 'wrong page'
-def test_update_false():
+def test_update_false_page_number():
     with pytest.raises(ValueError):
-        txt.update(FALSE_PAGE_NUMBER, new_title, new_text)
-
-@pytest.mark.skip('Skipping cause test_update_text_only not done.')
-def test_update_text_only(temp_text):
-    txt.update_text(temp_text, 'Updated Text')
-
+        txt.update(FALSE_PAGE_NUMBER, txt.TITLE, "Not Care")
