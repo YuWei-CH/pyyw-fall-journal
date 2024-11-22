@@ -147,15 +147,25 @@ def test_delete():
     assert ppl.DEL_EMAIL not in people
 
 
-def test_update_name_blank():
+def test_update_blank_value():
     with pytest.raises(ValueError):
-        ppl.update_name(ppl.TEST_EMAIL, " ")
+        ppl.update(ppl.TEST_EMAIL, ppl.NAME, " ")
+
+
+def test_update_invalid_email():
+    result = ppl.update("wrong email", ppl.NAME, "Not Care")
+    assert result is None
+
+
+def test_update_invalid_field():
+    with pytest.raises(ValueError):
+        ppl.update(ppl.TEST_EMAIL, "invalid field", "Not Care")
 
 
 def test_update_name():
     people = ppl.read()
     old_name = people[ppl.TEST_EMAIL][ppl.NAME]
-    updated_email = ppl.update_name(ppl.TEST_EMAIL, UPDATE_NAME)
+    updated_email = ppl.update(ppl.TEST_EMAIL, ppl.NAME, UPDATE_NAME)
     people = ppl.read()
     new_name = people[ppl.TEST_EMAIL][ppl.NAME]
     assert old_name != new_name
@@ -169,20 +179,12 @@ def test_update_affiliation():
     """
     people = ppl.read()
     old_affiliation = people[ppl.TEST_EMAIL][ppl.AFFILIATION]
-    updated_email = ppl.update_affiliation(ppl.TEST_EMAIL, UPDATE_AFFILIATION)
+    updated_email = ppl.update(ppl.TEST_EMAIL, ppl.AFFILIATION, UPDATE_AFFILIATION)
     people = ppl.read()
     new_affiliation = people[ppl.TEST_EMAIL][ppl.AFFILIATION]
     assert updated_email == ppl.TEST_EMAIL
     assert new_affiliation == UPDATE_AFFILIATION
     assert old_affiliation != new_affiliation
-
-
-def test_update_affiliation_blank():
-    """
-    Test the update_affiliation() function to ensure it raises a ValueError when the new affiliation is blank.
-    """
-    with pytest.raises(ValueError):
-        ppl.update_affiliation(ppl.TEST_EMAIL, " ")
 
 
 def test_add_role():

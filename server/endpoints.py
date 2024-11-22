@@ -176,20 +176,16 @@ class PersonUpdate(Resource):
         Update person information.
         """
         try:
+            email = request.json.get(ppl.EMAIL)
             field = request.json.get(FIELD)
             value = request.json.get(VALUE)
-            email = request.json.get(ppl.EMAIL)
-            if field == ppl.NAME:
-                ret = ppl.update_name(email, value)
-            elif field == ppl.AFFILIATION:
-                ret = ppl.update_affiliation(email, value)
-            else:
-                raise ValueError("Invalid field name. ")
+            ret = ppl.update(email, field, value)
         except Exception as err:
             raise wz.NotAcceptable(f'Could not update person: '
                                    f'{err=}')
         if ret is None:
-            raise wz.NotFound(f'No such person: {email}')
+            raise wz.NotFound(f'Error updating {email}: '
+                              f'person with this email does not exist. ')
         return {
             MESSAGE: f'{field} updated for {email}!',
             RETURN: ret,
@@ -314,6 +310,6 @@ class TextUpdate(Resource):
             raise wz.NotAcceptable(f'Could not update text: '
                                    f'{err=}')
         return {
-            MESSAGE: f'text updated for {page_number}!',
+            MESSAGE: f'{field} updated for {page_number}!',
             RETURN: page_number,
         }

@@ -82,3 +82,13 @@ FALSE_PAGE_NUMBER = 'wrong page'
 def test_update_false_page_number():
     with pytest.raises(ValueError):
         txt.update(FALSE_PAGE_NUMBER, txt.TITLE, "Not Care")
+
+
+def test_update_invalid_field():
+    with pytest.raises(ValueError):
+        txt.update(txt.TEST_PAGE_NUMBER, "invalid field", "Not Care")
+
+
+def test_update_empty_value():
+    with pytest.raises(ValueError):
+        txt.update(txt.TEST_PAGE_NUMBER, txt.TITLE, " ")

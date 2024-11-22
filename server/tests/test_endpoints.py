@@ -89,37 +89,20 @@ def test_delete_people():
     assert resp_json[ep.DELETED] == New_Email
 
 
-UPDATE_NAME_TEST_DATA = {
+UPDATE_PEOPLE_DATA = {
     EMAIL: ppl.TEST_EMAIL,
     ep.FIELD: NAME,
     ep.VALUE: "Yirong Wang",
 }
 
 
-def test_update_name():
+def test_update_people():
     resp = TEST_CLIENT.put(
         f'{ep.PEOPLE_EP}/update',
-        data=json.dumps(UPDATE_NAME_TEST_DATA),
+        data=json.dumps(UPDATE_PEOPLE_DATA),
         content_type='application/json'
     )
-    resp_json = resp.get_json()
-    assert isinstance(resp_json, dict)
-    assert resp_json[ep.RETURN] == ppl.TEST_EMAIL
-
-
-UPDATE_AFFILIATION_TEST_DATA = {
-    EMAIL: ppl.TEST_EMAIL,
-    ep.FIELD: AFFILIATION,
-    ep.VALUE: "USC",
-}
-
-
-def test_update_affiliation():
-    resp = TEST_CLIENT.put(
-        f'{ep.PEOPLE_EP}/update',
-        data=json.dumps(UPDATE_AFFILIATION_TEST_DATA),
-        content_type='application/json'
-    )
+    assert resp.status_code == OK
     resp_json = resp.get_json()
     assert isinstance(resp_json, dict)
     assert resp_json[ep.RETURN] == ppl.TEST_EMAIL
@@ -138,22 +121,6 @@ def test_add_role():
     )
     resp_json = resp.get_json()
     assert resp_json[ep.RETURN] == ppl.TEST_EMAIL
-
-UPDATE_TEST_DATA_INVALID = {
-    EMAIL: ppl.TEST_EMAIL,
-    ep.FIELD: "Invalid Field. ",
-    ep.VALUE: "Do not care about value. ",
-}
-
-
-def test_update_invalid_field():
-    resp = TEST_CLIENT.put(
-        f'{ep.PEOPLE_EP}/update',
-        data=json.dumps(UPDATE_TEST_DATA_INVALID),
-        content_type='application/json'
-    )
-    resp_json = resp.get_json()
-    assert "ValueError" in resp_json[ep.MESSAGE]
 
 
 New_Page_Number = "Next Page" 

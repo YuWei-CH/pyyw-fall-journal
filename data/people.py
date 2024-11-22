@@ -110,20 +110,12 @@ def delete(email):
     return email if del_num == 1 else None
 
 
-def update_name(email: str, name: str):
-    if not name.strip():
-        raise ValueError("Name can't be blank")
-    result = dbc.update_doc(PEOPLE_COLLECT, {EMAIL: email}, {NAME: name})
-    if result.matched_count > 0:
-        return email
-    return None
-
-
-def update_affiliation(email: str, affiliation: str):
-    if not affiliation.strip():
-        raise ValueError("Name can't be blank")
-    result = dbc.update_doc(PEOPLE_COLLECT, {EMAIL: email},
-                            {AFFILIATION: affiliation})
+def update(email: str, field: str, value: str):
+    if not value.strip():
+        raise ValueError("Value can't be blank")
+    if field != NAME and field != AFFILIATION:
+        raise ValueError(f'{field} is not a valid field to update')
+    result = dbc.update_doc(PEOPLE_COLLECT, {EMAIL: email}, {field: value})
     if result.matched_count > 0:
         return email
     return None

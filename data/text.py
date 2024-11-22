@@ -67,6 +67,8 @@ def create(page_number: str, title: str, text: str):
 
 
 def update(page_number: str, field: str, value: str):
+    if not value.strip():
+        raise ValueError("Value can't be blank")
     if page_number not in text_dict:
         raise ValueError(f'{page_number} do not exist')
     if field != TITLE and field != TEXT:
