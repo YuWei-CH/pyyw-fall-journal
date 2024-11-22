@@ -224,6 +224,44 @@ class PersonAddRole(Resource):
         }
 
 
+PEOPLE_ROLE_DELETE_FLDS = api.model('DeleteRoleEntry', {
+    ppl.EMAIL: fields.String,
+    ROLE: fields.String,
+})
+
+
+@api.route(f'{PEOPLE_EP}/delete_role')
+class PersonDeleteRole(Resource):
+    """
+    This class handles the deletion of a people's role (DELETE).
+    """
+    @api.response(HTTPStatus.OK, 'Success. ')
+    @api.response(HTTPStatus.NOT_FOUND, 'Person or role not found. ')
+    @api.response(HTTPStatus.NOT_ACCEPTABLE, 'Not acceptable. ')
+    @api.expect(PEOPLE_ROLE_DELETE_FLDS)
+    def delete(self):
+        """
+        Delete people role.
+        """
+        try:
+            # Extract email and role from the request
+            email = request.json.get(ppl.EMAIL)
+            role = request.json.get(ROLE)
+
+            # Call the delete_role function
+            ret = ppl.delete_role(email, role)
+        except ValueError as err:
+            raise wz.NotFound(f'Could not delete role: {err}')
+        except Exception as err:
+            raise wz.NotAcceptable(f'Error occurred when delete role: {err}')
+
+        # Return success response
+        return {
+            MESSAGE: f'{role} deleted for {email}!',
+            RETURN: ret,
+        }
+
+
 TEXT_CREATE_FLDS = api.model('AddNewTextEntry', {
     txt.TITLE: fields.String,
     txt.TEXT: fields.String,
