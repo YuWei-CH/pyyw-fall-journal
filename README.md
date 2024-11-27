@@ -16,3 +16,13 @@ stop:  brew services stop mongodb/brew/mongodb-community@6.0
 
 to use mongoDB, you connect to the client via  connect_db() from data/db_connect: client= connect_db()
 Then, replace the existing functions in people.py...roles.py....text.py...etc...to CRUD data from corresponding collection in the client (of selected parameter.)
+
+# mongodb for mac, remote access
+We will be using Atlas for our service. Provided over AWS. 
+1. execute the command first
+python -m pip install "pymongo[srv]"==3.12. This driver will be used for Atlas 
+2. Following will be an example of how to connection
+mongodb+srv://kc0000:PASSWORD@cluster0.q7jza.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0
+I will not be sharing the username/password here. 
+replace kc0000 and PASSWORD accordingly
+
