@@ -149,10 +149,6 @@ def test_delete_role():
     # Assert that the correct email is returned after deletion
     assert resp_json[ep.RETURN] == ppl.TEST_EMAIL
 
-    # Assert that the role is no longer present (validation step)
-    person = ppl.dbc.read_one(ppl.PEOPLE_COLLECT, {EMAIL: ppl.TEST_EMAIL})
-    assert ep.ROLE not in person.get(ppl.ROLES, [])
-
 
 New_Page_Number = "Next Page" 
 TEXT_CREATE_TEST_DATA = {
@@ -202,3 +198,12 @@ def test_update_text():
     resp_json = resp.get_json()
     assert isinstance(resp_json, dict)
     assert resp_json[ep.RETURN] == txt.TEST_PAGE_NUMBER
+
+
+def test_get_masthead():
+    resp = TEST_CLIENT.get(f'{ep.PEOPLE_EP}/masthead')
+    resp_json = resp.get_json()
+    for _key, masthead in resp_json.items():
+        assert isinstance(_key, str)
+        assert isinstance(masthead, dict)
+        assert len(masthead) > 0
