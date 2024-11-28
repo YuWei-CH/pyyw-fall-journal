@@ -14,28 +14,39 @@ MONGO_ID = '_id'
 
 def connect_db():
     """
-    This provides a uniform way to connect to the DB across all uses.
-    Returns a mongo client object... maybe we shouldn't?
-    Also set global client variable.
-    We should probably either return a client OR set a
-    client global.
+    Provides a uniform way to connect to the DB across all uses.
+    Returns a MongoClient object or sets the global client variable.
     """
     global client
-    if client is None:  # not connected yet!
+    if client is None:  # If not already connected
         print("Setting client because it is None.")
-        if os.environ.get("CLOUD_MONGO", LOCAL) == CLOUD:
+        
+        if os.environ.get("CLOUD_MONGO", "LOCAL") == "CLOUD":  # Check environment variable
             password = os.environ.get("GAME_MONGO_PW")
+            print('PASSWORD: ', password)
+            
             if not password:
-                raise ValueError('You must set your password '
-                                 + 'to use Mongo in the cloud.')
+                raise ValueError("You must set your password to use Mongo in the cloud.")
+            
             print("Connecting to Mongo in the cloud.")
-            client = pm.MongoClient(f'mongodb+srv://gcallah:{password}'
-                                    + '@koukoumongo1.yud9b.mongodb.net/'
-                                    + '?retryWrites=true&w=majority')
+            
+            # Use your MongoDB Atlas connection string
+            uri = f"mongodb+srv://yw5954:{password}@cluster0.q7jza.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
+            
+            # Use ServerApi for MongoDB Atlas
+            client = pm.MongoClient(uri, server_api=pm.server_api.ServerApi('1'))
+            
+            # Test the connection with a ping
+            try:
+                client.admin.command('ping')
+                print("Pinged your deployment. Successfully connected to MongoDB!")
+            except Exception as e:
+                raise ConnectionError(f"Failed to connect to MongoDB: {e}")
         else:
             print("Connecting to Mongo locally.")
-            client = pm.MongoClient()
-        return client
+            client = pm.MongoClient()  # Connect to the local MongoDB instance
+    
+    return client
 
 
 def create(collection, doc, db=SE_DB):
