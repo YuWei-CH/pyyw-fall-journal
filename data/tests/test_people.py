@@ -118,7 +118,7 @@ def test_read(temp_person):
 ADD_EMAIL = 'joe@nyu.edu'
 UPDATE_NAME = 'Yuwei Sun'
 UPDATE_AFFILIATION = "MIT"
-UPDATE_ROLE_CODE = "CH"
+UPDATE_ROLE_CODE = "CE"
 
 
 def test_get_masthead():
@@ -219,7 +219,7 @@ def test_add_role():
     old_roles = people[ppl.TEST_EMAIL][ppl.ROLES]
     assert UPDATE_ROLE_CODE not in old_roles
     _id = ppl.add_role(ppl.TEST_EMAIL, UPDATE_ROLE_CODE)
-    assert _id != None
+    assert _id == ppl.TEST_EMAIL
     people = ppl.read()
     new_roles = people[ppl.TEST_EMAIL][ppl.ROLES]
     assert UPDATE_ROLE_CODE in new_roles
@@ -229,12 +229,8 @@ def test_add_blank_role():
     """
     Test the add_role() function with blank role
     """
-    people = ppl.read()
-    old_roles = people[ppl.TEST_EMAIL][ppl.ROLES]
-    assert UPDATE_ROLE_CODE in old_roles
     with pytest.raises(ValueError):
-        _id = ppl.add_role(ppl.TEST_EMAIL, "")
-        assert _id == None
+        ppl.add_role(ppl.TEST_EMAIL, " ")
 
 
 def test_add_duplicate_role():
@@ -242,11 +238,26 @@ def test_add_duplicate_role():
     Test the add_role() function with duplicate role
     """
     people = ppl.read()
-    old_roles = people[ppl.TEST_EMAIL][ppl.ROLES]
-    assert UPDATE_ROLE_CODE in old_roles
+    roles = people[ppl.TEST_EMAIL][ppl.ROLES]
+    assert UPDATE_ROLE_CODE in roles
     with pytest.raises(ValueError):
-        _id = ppl.add_role(ppl.TEST_EMAIL, UPDATE_ROLE_CODE)
-        assert _id == None
+        ppl.add_role(ppl.TEST_EMAIL, UPDATE_ROLE_CODE)
+
+
+def test_add_invalid_role():
+    """
+    Test the add_role() function with invalid role
+    """
+    with pytest.raises(ValueError):
+        ppl.add_role(ppl.TEST_EMAIL, "invalid role")
+
+
+def test_add_role_invalid_email():
+    """
+    Test the add_role() function with invalid email
+    """
+    with pytest.raises(ValueError):
+        ppl.add_role("invalid email", UPDATE_ROLE_CODE)
 
 
 def test_delete_role():
@@ -254,8 +265,11 @@ def test_delete_role():
     Test the delete_role() function
     """
     # Now delete the role
+    people = ppl.read()
+    old_roles = people[ppl.TEST_EMAIL][ppl.ROLES]
+    assert UPDATE_ROLE_CODE in old_roles
     _id = ppl.delete_role(ppl.TEST_EMAIL, UPDATE_ROLE_CODE)
-    assert _id is not None
+    assert _id == ppl.TEST_EMAIL
     people = ppl.read()
     new_roles = people[ppl.TEST_EMAIL][ppl.ROLES]
     assert UPDATE_ROLE_CODE not in new_roles
@@ -266,27 +280,23 @@ def test_delete_blank_role():
     Test the delete_role() function with a blank role
     """
     with pytest.raises(ValueError):
-        _id = ppl.delete_role(ppl.TEST_EMAIL, "")
-        assert _id is None
+        ppl.delete_role(ppl.TEST_EMAIL, " ")
 
 
-def test_delete_nonexistent_role():
+def test_delete_invalid_role():
     """
-    Test the delete_role() function with a role that doesn't exist
+    Test the delete_role() function with invalid role
     """
     people = ppl.read()
     old_roles = people[ppl.TEST_EMAIL][ppl.ROLES]
     assert UPDATE_ROLE_CODE not in old_roles
     with pytest.raises(ValueError):
-        _id = ppl.delete_role(ppl.TEST_EMAIL, UPDATE_ROLE_CODE)
-        assert _id is None
+        ppl.delete_role(ppl.TEST_EMAIL, UPDATE_ROLE_CODE)
 
 
-def test_delete_role_nonexistent_user():
+def test_delete_role_invalid_email():
     """
     Test deleting a role from a non-existent user
     """
-    nonexistent_email = 'nonexistent@domain.com'
     with pytest.raises(ValueError):
-        _id = ppl.delete_role(nonexistent_email, UPDATE_ROLE_CODE)
-        assert _id is None
+        ppl.delete_role("invalid email", UPDATE_ROLE_CODE)

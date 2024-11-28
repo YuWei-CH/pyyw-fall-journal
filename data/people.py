@@ -134,7 +134,7 @@ def update(email: str, field: str, value: str):
     return None
 
 
-def has_role(person: dict, role):
+def has_role(person: dict, role: str):
     if role in person.get(ROLES):
         return True
     return False
@@ -170,7 +170,9 @@ def add_role(email: str, role: str):
     person = dbc.read_one(PEOPLE_COLLECT, {EMAIL: email})
     if not person:
         raise ValueError(f"Person {email} not found")
-    if role in person.get(ROLES, []):
+    if not rls.is_valid(role):
+        raise ValueError(f'Invalid role: {role}')
+    if has_role(person, role):
         raise ValueError("Can't add a duplicate role")
     updated_roles = person[ROLES] + [role]
     dbc.update_doc(PEOPLE_COLLECT, {EMAIL: email}, {ROLES: updated_roles})
@@ -183,7 +185,7 @@ def delete_role(email: str, role: str):
     person = dbc.read_one(PEOPLE_COLLECT, {EMAIL: email})
     if not person:
         raise ValueError(f"Person {email} not found")
-    if role not in person.get(ROLES, []):
+    if not has_role(person, role):
         raise ValueError("Role not found")
     updated_roles = [r for r in person[ROLES] if r != role]
     dbc.update_doc(PEOPLE_COLLECT, {EMAIL: email}, {ROLES: updated_roles})
