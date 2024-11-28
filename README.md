@@ -18,6 +18,8 @@ to use mongoDB, you connect to the client via  connect_db() from data/db_connect
 Then, replace the existing functions in people.py...roles.py....text.py...etc...to CRUD data from corresponding collection in the client (of selected parameter.)
 
 # mongodb for mac, remote access
+TEMP PASSWORD FOR TESTING: mongoPASSWORD
+
 We will be using Atlas for our service. Provided over AWS. 
 1. execute the command first
 python -m pip install "pymongo[srv]"==3.12. This driver will be used for Atlas 
