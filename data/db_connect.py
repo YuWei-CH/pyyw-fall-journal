@@ -24,6 +24,9 @@ def connect_db():
             # Check environment variable
             password = os.environ.get("GAME_MONGO_PW")
             print('PASSWORD: ', password)
+
+            password = 'mongoPASSWORD'  # temporary put it here for TA to use
+
             if not password:
                 raise ValueError("You must set your password to \
                                 use Mongo in the cloud.")
