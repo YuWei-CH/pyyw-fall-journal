@@ -10,6 +10,20 @@ def test_create():
     assert Contact_KEY in people
 
 
+def test_create_blank():
+    with pytest.raises(ValueError):
+        txt.create(txt.TEST_PAGE_NUMBER,
+                          " ", " ")
+
+
+def test_create_duplicate():
+    text = txt.read()
+    assert Contact_KEY in text
+    with pytest.raises(ValueError):
+        txt.create(Contact_KEY,
+                          "Not care", "Nothing")
+
+
 def test_read():
     texts = txt.read()
     assert isinstance(texts, dict)
@@ -47,11 +61,6 @@ def test_delete_not_found():
 
 
 Contact_KEY = 'ContactUs'
-
-def test_create_duplicate():
-    with pytest.raises(ValueError):
-        txt.create(txt.TEST_PAGE_NUMBER,
-                          "Not care", "Nothing")
 
 
 NEW_TITLE = "New Test Title"

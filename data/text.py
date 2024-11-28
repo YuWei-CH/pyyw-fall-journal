@@ -62,6 +62,8 @@ def delete(page_number: str):
 def create(page_number: str, title: str, text: str):
     if page_number in text_dict:
         raise ValueError(f'Adding duplicate {page_number=}')
+    if not title.strip() or not text.strip():
+        raise ValueError('Title or text can not be blank')
     text_dict[page_number] = {TITLE: title, TEXT: text}
     return page_number
 
