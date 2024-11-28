@@ -20,32 +20,30 @@ def connect_db():
     global client
     if client is None:  # If not already connected
         print("Setting client because it is None.")
-        
-        if os.environ.get("CLOUD_MONGO", "LOCAL") == "CLOUD":  # Check environment variable
+        if os.environ.get("CLOUD_MONGO", "LOCAL") == "CLOUD":
+            # Check environment variable
             password = os.environ.get("GAME_MONGO_PW")
             print('PASSWORD: ', password)
-            
             if not password:
-                raise ValueError("You must set your password to use Mongo in the cloud.")
-            
+                raise ValueError("You must set your password to \
+                                use Mongo in the cloud.")
             print("Connecting to Mongo in the cloud.")
-            
             # Use your MongoDB Atlas connection string
-            uri = f"mongodb+srv://yw5954:{password}@cluster0.q7jza.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
-            
+            uri = f"mongodb+srv://yw5954:{password}@cluster0.q7jza.mongodb.net\
+                /?retryWrites=true&w=majority&appName=Cluster0"
             # Use ServerApi for MongoDB Atlas
-            client = pm.MongoClient(uri, server_api=pm.server_api.ServerApi('1'))
-            
+            client = pm.MongoClient(uri,
+                                    server_api=pm.server_api.ServerApi('1'))
             # Test the connection with a ping
             try:
                 client.admin.command('ping')
-                print("Pinged your deployment. Successfully connected to MongoDB!")
+                print("Pinged your deployment. \
+                Successfully connected to MongoDB!")
             except Exception as e:
                 raise ConnectionError(f"Failed to connect to MongoDB: {e}")
         else:
             print("Connecting to Mongo locally.")
             client = pm.MongoClient()  # Connect to the local MongoDB instance
-    
     return client
 
 
