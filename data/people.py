@@ -154,7 +154,7 @@ def get_masthead() -> dict:
 def add_role(email: str, role: str):
     if not role.strip():
         raise ValueError("Can't add an empty role")
-    person = dbc.fetch_one(PEOPLE_COLLECT, {EMAIL: email})
+    person = dbc.read_one(PEOPLE_COLLECT, {EMAIL: email})
     if not person:
         raise ValueError(f"Person {email} not found")
     if role in person.get(ROLES, []):
@@ -167,7 +167,7 @@ def add_role(email: str, role: str):
 def delete_role(email: str, role: str):
     if not role.strip():
         raise ValueError("Can't delete an empty role")
-    person = dbc.fetch_one(PEOPLE_COLLECT, {EMAIL: email})
+    person = dbc.read_one(PEOPLE_COLLECT, {EMAIL: email})
     if not person:
         raise ValueError(f"Person {email} not found")
     if role not in person.get(ROLES, []):

@@ -150,7 +150,7 @@ def test_delete_role():
     assert resp_json[ep.RETURN] == ppl.TEST_EMAIL
 
     # Assert that the role is no longer present (validation step)
-    person = ppl.dbc.fetch_one(ppl.PEOPLE_COLLECT, {EMAIL: ppl.TEST_EMAIL})
+    person = ppl.dbc.read_one(ppl.PEOPLE_COLLECT, {EMAIL: ppl.TEST_EMAIL})
     assert ep.ROLE not in person.get(ppl.ROLES, [])
 
 
