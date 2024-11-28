@@ -88,6 +88,8 @@ def is_valid_person(name: str, affiliation: str, email: str,
         raise ValueError(f'Adding duplicate {email=}')
     if not is_valid_email(email):
         raise ValueError(f'Invalid email: {email}')
+    if not name.strip() or not affiliation.strip():
+        raise ValueError("Name or Affiliation can't be blank. ")
     if role:
         if not rls.is_valid(role):
             raise ValueError(f'Invalid role: {role}')

@@ -16,11 +16,13 @@ def test_read():
     for page_number in texts:
         assert isinstance(page_number, str)
 
+
 @pytest.fixture(scope='function')
 def temp_text():
     _page_number = txt.create("TestPage", "Test Title", "Test Text")
     yield _page_number
     txt.delete(_page_number)
+
 
 def test_read_one(temp_text):
     assert len(txt.read_one(temp_text)) > 0

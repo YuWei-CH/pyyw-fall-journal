@@ -219,7 +219,7 @@ class PersonAddRole(Resource):
             raise wz.NotAcceptable(f'Could not update role: '
                                    f'{err=}')
         return {
-            MESSAGE: f'{role} updated for {email}!',
+            MESSAGE: f'{role} added for {email}!',
             RETURN: ret,
         }
 

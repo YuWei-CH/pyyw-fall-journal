@@ -141,6 +141,23 @@ def test_create_duplicate(temp_person):
                     TEST_CODE)
 
 
+def test_create_bad_email():
+    with pytest.raises(ValueError):
+        ppl.create('Do not care about name', 
+                   'Or affiliation', 'bademail', TEST_CODE)
+
+
+def test_create_invalid_role():
+    with pytest.raises(ValueError):
+        ppl.create('Do not care about name', 
+                   'Or affiliation', 'goodemail@gmail.com', 'badrole')
+
+
+def test_create_empty_name():
+    with pytest.raises(ValueError):
+        ppl.create(' ', ' ', 'goodemail@gmail.com', TEST_CODE)
+
+
 def test_exists(temp_person):
     assert ppl.exists(temp_person)
 
