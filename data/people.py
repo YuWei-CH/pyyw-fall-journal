@@ -69,6 +69,18 @@ def read():
     return people
 
 
+def read_one(email: str) -> dict:
+    """
+    Return a person record if email present in DB,
+    else None.
+    """
+    return dbc.read_one(PEOPLE_COLLECT, {EMAIL: email})
+
+
+def exists(email: str) -> bool:
+    return read_one(email) is not None
+
+
 def is_valid_person(name: str, affiliation: str, email: str,
                     role: str = None, roles: list = None) -> bool:
     people_db = dbc.read_dict(PEOPLE_COLLECT, EMAIL)
@@ -87,8 +99,7 @@ def is_valid_person(name: str, affiliation: str, email: str,
 
 
 def create(name: str, affiliation: str, email: str, role: str):
-    people_db = dbc.read_dict(PEOPLE_COLLECT, EMAIL)
-    if email in people_db:
+    if exists(email):
         raise ValueError(f'Adding duplicate {email=}')
     if is_valid_person(name, affiliation, email, role=role):
         roles = []

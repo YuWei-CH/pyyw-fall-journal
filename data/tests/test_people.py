@@ -30,7 +30,10 @@ TEMP_EMAIL = 'temp_person@temp.org'
 def temp_person():
     _id = ppl.create('Peter Peter', 'PKU', TEMP_EMAIL, TEST_CODE)
     yield _id
-    ppl.delete(_id)
+    try:
+        ppl.delete(_id)
+    except:
+        print('Person already deleted.')
 
 
 def test_is_mail_valid_full():
@@ -101,7 +104,7 @@ def test_domain_more_than_two_char():
     assert ppl.is_valid_email(DOMAIN_2_CHR_MORE)
 
 
-def test_read():
+def test_read(temp_person):
     people = ppl.read()
     assert isinstance(people, dict)
     assert len(people) > 0
@@ -127,24 +130,28 @@ def test_create():
     people = ppl.read()
     assert ADD_EMAIL not in people
     ppl.create('Joe Smith', 'NYU', ADD_EMAIL, TEST_CODE)
-    people = ppl.read()
-    assert ADD_EMAIL in people
+    assert ppl.exists(ADD_EMAIL)
     ppl.delete(ADD_EMAIL)
 
 
-def test_create_duplicate():
+def test_create_duplicate(temp_person):
     with pytest.raises(ValueError):
-        ppl.create('Do not care about name',
-                          'Or affiliation', ppl.TEST_EMAIL, TEST_CODE)
+        ppl.create('Do not care about name', 
+                    'Or affiliation', temp_person, 
+                    TEST_CODE)
 
 
-def test_delete():
-    people = ppl.read()
-    old_len = len(people)
-    ppl.delete(ppl.DEL_EMAIL)
-    people = ppl.read()
-    assert len(people) < old_len
-    assert ppl.DEL_EMAIL not in people
+def test_exists(temp_person):
+    assert ppl.exists(temp_person)
+
+
+def test_doesnt_exist():
+    assert not ppl.exists('Not an existing email!')
+
+
+def test_delete(temp_person):
+    ppl.delete(temp_person)
+    assert not ppl.exists(temp_person)
 
 
 def test_update_blank_value():
