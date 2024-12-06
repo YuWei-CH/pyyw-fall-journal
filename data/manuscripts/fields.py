@@ -19,6 +19,9 @@ def get_flds() -> dict:
 def get_fld_names() -> list:
     return FIELDS.keys()
 
+def get_disp_name(fld_nm: str) -> str:
+    fld = FIELDS.get(fld_nm, '')
+    return fld[DISP_NAME]
 
 def main():
     print(f'{get_flds()=}')
