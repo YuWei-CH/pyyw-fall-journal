@@ -1,5 +1,5 @@
 import data.manuscripts.fields as mflds
-from data.manuscripts.fields import TITLE, DISP_NAME, TEST_FLD_DISP_NM
+from data.manuscripts.fields import TITLE, TEST_FLD_DISP_NM
 
 def test_get_flds():
     flds = mflds.get_flds()
