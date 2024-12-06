@@ -1,7 +1,6 @@
 import re
 import data.roles as rls
 import data.db_connect as dbc
-from data.roles import MNG_EDITOR_CODE, EDITOR_CODE
 
 MIN_USER_NAME_LEN = 2
 
@@ -27,13 +26,13 @@ print(f'{client=}')
 people_dict = {
     TEST_EMAIL: {
         NAME: 'Yuxuan Wang',
-        ROLES: [MNG_EDITOR_CODE],
+        ROLES: [rls.ME_CODE],
         AFFILIATION: 'THU',
         EMAIL: TEST_EMAIL,
     },
     DEL_EMAIL: {
         NAME: 'Yuwei Sun',
-        ROLES: [EDITOR_CODE],
+        ROLES: [rls.ED_CODE],
         AFFILIATION: 'PKU',
         EMAIL: DEL_EMAIL,
     },
@@ -143,9 +142,13 @@ def has_role(person: dict, role: str):
 MH_FIELDS = [NAME, AFFILIATION]
 
 
+def get_mh_fields(journal_code=None) -> list:
+    return MH_FIELDS
+
+
 def create_mh_rec(person: dict) -> dict:
     mh_rec = {}
-    for field in MH_FIELDS:
+    for field in get_mh_fields():
         mh_rec[field] = person.get(field, '')
     return mh_rec
 
@@ -190,3 +193,11 @@ def delete_role(email: str, role: str):
     updated_roles = [r for r in person[ROLES] if r != role]
     dbc.update_doc(PEOPLE_COLLECT, {EMAIL: email}, {ROLES: updated_roles})
     return email
+
+
+def main():
+    print(get_masthead())
+
+
+if __name__ == '__main__':
+    main()

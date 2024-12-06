@@ -4,24 +4,23 @@ This module manages person roles for a journal.
 """
 from copy import deepcopy
 
+ED_CODE = 'ED'
+ME_CODE = 'ME'
+CE_CODE = 'CE'
 AUTHOR_CODE = 'AU'
-EDITOR_CODE = 'ED'
 REFREE_CODE = 'RE'
-MNG_EDITOR_CODE = 'ME'
-CP_EDITOR_CODE = 'CE'
 
 TEST_CODE = AUTHOR_CODE
 
 ROLES = {
+    ED_CODE: 'Editor',
+    ME_CODE: 'Managing Editor',
+    CE_CODE: 'Consulting Editor',
     AUTHOR_CODE: 'Author',
-    EDITOR_CODE: 'Editor',
     REFREE_CODE: 'Referee',
-    MNG_EDITOR_CODE: 'Managing Editor',
-    CP_EDITOR_CODE: 'Copy Editor'
-
 }
 
-MH_ROLES = [EDITOR_CODE, MNG_EDITOR_CODE, CP_EDITOR_CODE]
+MH_ROLES = [ED_CODE, ME_CODE, CE_CODE]
 
 
 def get_roles() -> dict:
