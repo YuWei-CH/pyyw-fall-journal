@@ -114,16 +114,41 @@ def test_read(temp_person):
         assert ppl.NAME in person
 
 
+def test_read_one(temp_person):
+    assert ppl.read_one(temp_person) is not None
 
-ADD_EMAIL = 'joe@nyu.edu'
-UPDATE_NAME = 'Yuwei Sun'
-UPDATE_AFFILIATION = "MIT"
-UPDATE_ROLE_CODE = "CE"
+
+def test_read_one_not_there():
+    assert ppl.read_one('Not an existing email!') is None
+
+
+def test_create_mh_rec(temp_person):
+    person_rec = ppl.read_one(temp_person)
+    mh_rec = ppl.create_mh_rec(person_rec)
+    assert isinstance(mh_rec, dict)
+    for field in ppl.MH_FIELDS:
+        assert field in mh_rec
 
 
 def test_get_masthead():
     mh = ppl.get_masthead()
     assert isinstance(mh, dict)
+
+
+def test_has_role(temp_person):
+    person_rec = ppl.read_one(temp_person)
+    assert ppl.has_role(person_rec, TEST_CODE)
+
+
+def test_doesnt_have_role(temp_person):
+    person_rec = ppl.read_one(temp_person)
+    assert not ppl.has_role(person_rec, 'Not a good role!')
+
+
+ADD_EMAIL = 'joe@nyu.edu'
+UPDATE_NAME = 'Yuwei Sun'
+UPDATE_AFFILIATION = "MIT"
+UPDATE_ROLE_CODE = "CE"
 
 
 def test_create():
