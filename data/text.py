@@ -7,22 +7,18 @@ PAGE_NUMBER = 'pageNumber'
 TITLE = 'title'
 TEXT = 'text'
 
-TEST_PAGE_NUMBER = 'HomePage'
+HOME_PAGE_NUMBER = 'HomePage'
 SUBM_PAGE_NUMBER = 'SubmissionsPage'
-DEL_PAGE_NUMBER = 'DeletePage'
+TEST_PAGE_NUMBER = HOME_PAGE_NUMBER
 
 text_dict = {
-    TEST_PAGE_NUMBER: {
+    HOME_PAGE_NUMBER: {
         TITLE: 'Home Page',
         TEXT: 'This is a journal about building API servers.',
     },
     SUBM_PAGE_NUMBER: {
         TITLE: 'Submissions Page',
         TEXT: 'All submissions must be original work in Word format.',
-    },
-    DEL_PAGE_NUMBER: {
-        TITLE: 'Delete Page',
-        TEXT: 'This is a text to delete.',
     },
 }
 
