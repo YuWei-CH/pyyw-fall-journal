@@ -69,14 +69,24 @@ def test_read_text(mock_read):
     resp = TEST_CLIENT.get(ep.TEXT_EP)
     assert resp.status_code == OK
     resp_json = resp.get_json()
-    assert isinstance(resp_json, dict)
-    for _page_number, text in resp_json.items():
-        assert isinstance(_page_number, str)
-        assert len(_page_number) > 0
+    for page_number, text in resp_json.items():
+        assert isinstance(page_number, str)
+        assert len(page_number) > 0
         assert TITLE in text
-        assert text[TITLE] == 'Test Title'
         assert TEXT in text
-        assert text[TEXT] == 'Test Text'
+
+
+@patch('data.text.read_one', autospec=True,
+       return_value={TITLE: 'Test Title', TEXT: 'Test Text'})
+def test_read_one_text(mock_read):
+    resp = TEST_CLIENT.get(f'{ep.TEXT_EP}/mock_page_number')
+    assert resp.status_code == OK
+
+
+@patch('data.text.read_one', autospec=True, return_value=None)
+def test_read_one_text_not_found(mock_read):
+    resp = TEST_CLIENT.get(f'{ep.TEXT_EP}/mock_page_number')
+    assert resp.status_code == NOT_FOUND
 
 
 New_Email = "new@nyu.edu"

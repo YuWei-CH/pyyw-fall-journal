@@ -24,10 +24,14 @@ HELLO_EP = '/hello'
 HELLO_RESP = 'hello'
 
 TITLE_EP = '/title'
+PEOPLE_EP = '/people'
+
 TITLE_RESP = 'Title'
 TITLE = 'Jobless Computer Science Student Analysis (JCSS)'
-
-PEOPLE_EP = '/people'
+DATE = '2024-09-24'
+DATE_RESP = 'Date'
+EDITOR = 'yw5490@nyu.edu'
+EDITOR_RESP = 'Editor'
 PUBLISHER = 'MisteryForceFromEast'
 PUBLISHER_RESP = 'Publisher'
 
@@ -80,7 +84,10 @@ class JournalTitle(Resource):
         """
         Retrieve the journal title.
         """
-        return {TITLE_RESP: TITLE}
+        return {TITLE_RESP: TITLE,
+                EDITOR_RESP: EDITOR,
+                DATE_RESP: DATE,
+                PUBLISHER_RESP: PUBLISHER}
 
 
 @api.route(PEOPLE_EP)
@@ -99,8 +106,7 @@ class People(Resource):
 @api.route(f'{PEOPLE_EP}/<email>')
 class Person(Resource):
     """
-    This class handles creating, reading, updating
-    and deleting journal people.
+    This class handles reading and deleting a journal person.
     """
     def get(self, email):
         """
@@ -158,7 +164,7 @@ class PersonCreate(Resource):
 
 
 @api.route(TEXT_EP)
-class Text(Resource):
+class Texts(Resource):
     """
     This class handles reading text.
     """
@@ -305,7 +311,20 @@ class TextCreate(Resource):
 
 
 @api.route(f'{TEXT_EP}/<page_number>')
-class TextDelete(Resource):
+class Text(Resource):
+    """
+    This class handles reading and deleting a text through a page number.
+    """
+    def get(self, page_number):
+        """
+        Retrieve a text page.
+        """
+        text = txt.read_one(page_number)
+        if text:
+            return text
+        else:
+            raise wz.NotFound(f'No such page: {page_number}')
+
     @api.response(HTTPStatus.OK, 'Success.')
     @api.response(HTTPStatus.NOT_FOUND, 'No such text.')
     def delete(self, page_number):
