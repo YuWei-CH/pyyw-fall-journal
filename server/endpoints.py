@@ -163,18 +163,6 @@ class PersonCreate(Resource):
         }
 
 
-@api.route(TEXT_EP)
-class Texts(Resource):
-    """
-    This class handles reading text.
-    """
-    def get(self):
-        """
-        Retrieve the journal people.
-        """
-        return txt.read()
-
-
 PEOPLE_UPDATE_FLDS = api.model('UpdatePeopleEntry', {
     ppl.EMAIL: fields.String,
     FIELD: fields.String,
@@ -277,6 +265,18 @@ class PersonDeleteRole(Resource):
         }
 
 
+@api.route(TEXT_EP)
+class Texts(Resource):
+    """
+    This class handles reading text.
+    """
+    def get(self):
+        """
+        Retrieve the journal people.
+        """
+        return txt.read()
+
+
 TEXT_CREATE_FLDS = api.model('AddNewTextEntry', {
     txt.TITLE: fields.String,
     txt.TEXT: fields.String,
@@ -335,18 +335,6 @@ class Text(Resource):
             raise wz.NotFound(f'No such text: {page_number}')
 
 
-MASTHEAD = 'Masthead'
-
-
-@api.route(f'{PEOPLE_EP}/masthead')
-class Masthead(Resource):
-    """
-    Get a journal's masthead.
-    """
-    def get(self):
-        return {MASTHEAD: ppl.get_masthead()}
-
-
 TEXT_UPDATE_FLDS = api.model('UpdateTextEntry', {
     txt.PAGE_NUMBER: fields.String,
     FIELD: fields.String,
@@ -379,3 +367,15 @@ class TextUpdate(Resource):
             MESSAGE: f'{field} updated for {page_number}!',
             RETURN: page_number,
         }
+
+
+MASTHEAD = 'Masthead'
+
+
+@api.route(f'{PEOPLE_EP}/masthead')
+class Masthead(Resource):
+    """
+    Get a journal's masthead.
+    """
+    def get(self):
+        return {MASTHEAD: ppl.get_masthead()}
