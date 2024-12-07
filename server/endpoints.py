@@ -272,7 +272,7 @@ class Texts(Resource):
     """
     def get(self):
         """
-        Retrieve the journal people.
+        Retrieve the journal text.
         """
         return txt.read()
 

@@ -9,7 +9,6 @@ TEXT = 'text'
 
 HOME_PAGE_NUMBER = 'HomePage'
 SUBM_PAGE_NUMBER = 'SubmissionsPage'
-TEST_PAGE_NUMBER = HOME_PAGE_NUMBER
 
 text_dict = {
     HOME_PAGE_NUMBER: {
