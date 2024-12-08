@@ -12,38 +12,11 @@ ROLES = 'roles'
 AFFILIATION = 'affiliation'
 EMAIL = 'email'
 
-TEST_EMAIL = 'testEmail@nyu.edu'
-DEL_EMAIL = 'deleteEmail@nyu.edu'
-
 # for re check
 CHAR_OR_DIGIT = '[A-Za-z0-9]'
 
-
 client = dbc.connect_db()
 print(f'{client=}')
-
-# Initialization
-people_dict = {
-    TEST_EMAIL: {
-        NAME: 'Yuxuan Wang',
-        ROLES: [rls.ME_CODE],
-        AFFILIATION: 'THU',
-        EMAIL: TEST_EMAIL,
-    },
-    DEL_EMAIL: {
-        NAME: 'Yuwei Sun',
-        ROLES: [rls.ED_CODE],
-        AFFILIATION: 'PKU',
-        EMAIL: DEL_EMAIL,
-    },
-}
-people_db = dbc.read_dict(PEOPLE_COLLECT, EMAIL)
-for person in people_dict:
-    if person not in people_db:
-        dbc.create(PEOPLE_COLLECT, people_dict[person])
-    else:
-        dbc.delete(PEOPLE_COLLECT, {EMAIL: person})
-        dbc.create(PEOPLE_COLLECT, people_dict[person])
 
 
 def is_valid_email(email: str) -> bool:
@@ -82,8 +55,7 @@ def exists(email: str) -> bool:
 
 def is_valid_person(name: str, affiliation: str, email: str,
                     role: str = None, roles: list = None) -> bool:
-    people_db = dbc.read_dict(PEOPLE_COLLECT, EMAIL)
-    if email in people_db:
+    if exists(email):
         raise ValueError(f'Adding duplicate {email=}')
     if not is_valid_email(email):
         raise ValueError(f'Invalid email: {email}')

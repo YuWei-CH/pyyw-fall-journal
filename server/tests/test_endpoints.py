@@ -111,13 +111,14 @@ def test_create_people_failed(mock_create):
 
 
 UPDATE_PEOPLE_DATA = {
-    EMAIL: ppl.TEST_EMAIL,
+    EMAIL: "testEmail@gmail.com",
     ep.FIELD: NAME,
     ep.VALUE: "Yirong Wang",
 }
 
 
-def test_update_people():
+@patch('data.people.update', autospec=True, return_value='testEmail@gmail.com')
+def test_update_people(mock_update):
     resp = TEST_CLIENT.put(
         f'{ep.PEOPLE_EP}/update',
         data=json.dumps(UPDATE_PEOPLE_DATA),
@@ -126,49 +127,42 @@ def test_update_people():
     assert resp.status_code == OK
     resp_json = resp.get_json()
     assert isinstance(resp_json, dict)
-    assert resp_json[ep.RETURN] == ppl.TEST_EMAIL
+    assert ep.MESSAGE in resp_json
+    assert ep.RETURN in resp_json
 
 
-ADD_TEST_ROLE_DATA = {
-    EMAIL: ppl.TEST_EMAIL,
-    ep.ROLE: "RE"
+ADD_DELETE_ROLE_DATA = {
+    EMAIL: "testEmail@gmail.com",
+    ep.ROLE: rls.TEST_CODE
 }
 
 
-def test_add_role():
+@patch('data.people.add_role', autospec=True, return_value='testEmail@gmail.com')
+def test_add_role(mock_add_role):
     resp = TEST_CLIENT.put(
         f'{ep.PEOPLE_EP}/add_role',
-        data=json.dumps(ADD_TEST_ROLE_DATA),
+        data=json.dumps(ADD_DELETE_ROLE_DATA),
         content_type='application/json'
     )
+    assert resp.status_code == OK
     resp_json = resp.get_json()
-    assert resp_json[ep.RETURN] == ppl.TEST_EMAIL
+    assert isinstance(resp_json, dict)
+    assert ep.MESSAGE in resp_json
+    assert ep.RETURN in resp_json
 
 
-DELETE_TEST_ROLE_DATA = {
-    EMAIL: ppl.TEST_EMAIL,
-    ep.ROLE: "RE"
-}
-
-
-def test_delete_role():
-    # First, ensure the role exists (setup step, assuming add_role works)
-    TEST_CLIENT.put(
-        f'{ep.PEOPLE_EP}/add_role',
-        data=json.dumps(DELETE_TEST_ROLE_DATA),
-        content_type='application/json'
-    )
-
-    # Now, test deleting the role
+@patch('data.people.delete_role', autospec=True, return_value='testEmail@gmail.com')
+def test_delete_role(mock_delete_role):
     resp = TEST_CLIENT.delete(
         f'{ep.PEOPLE_EP}/delete_role',
-        data=json.dumps(DELETE_TEST_ROLE_DATA),
+        data=json.dumps(ADD_DELETE_ROLE_DATA),
         content_type='application/json'
     )
+    assert resp.status_code == OK
     resp_json = resp.get_json()
-    
-    # Assert that the correct email is returned after deletion
-    assert resp_json[ep.RETURN] == ppl.TEST_EMAIL
+    assert isinstance(resp_json, dict)
+    assert ep.MESSAGE in resp_json
+    assert ep.RETURN in resp_json
 
 
 @patch('data.text.read', autospec=True,
