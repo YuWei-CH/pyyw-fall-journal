@@ -2,8 +2,8 @@ import os
 
 import pymongo as pm
 
-LOCAL = "0"
-CLOUD = "1"
+LOCAL = "LOCAL"
+CLOUD = "CLOUD"
 
 SE_DB = 'seDB'
 
@@ -20,7 +20,7 @@ def connect_db():
     global client
     if client is None:  # If not already connected
         print("Setting client because it is None.")
-        if os.environ.get("CLOUD_MONGO", "LOCAL") == "CLOUD":
+        if os.environ.get("CLOUD_MONGO", LOCAL) == CLOUD:
             # Check environment variable
             password = os.environ.get("GAME_MONGO_PW")
             print('PASSWORD: ', password)
@@ -28,8 +28,8 @@ def connect_db():
             password = 'mongoPASSWORD'  # temporary put it here for TA to use
 
             if not password:
-                raise ValueError("You must set your password to \
-                                use Mongo in the cloud.")
+                raise ValueError("You must set GAME_MONGO_PW to your password \
+                                to use Mongo in the cloud.")
             print("Connecting to Mongo in the cloud.")
             # Use your MongoDB Atlas connection string
             uri = f"mongodb+srv://yw5954:{password}@cluster0.q7jza.mongodb.net\
