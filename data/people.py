@@ -42,7 +42,7 @@ for person in people_dict:
     if person not in people_db:
         dbc.create(PEOPLE_COLLECT, people_dict[person])
     else:
-        dbc.del_one(PEOPLE_COLLECT, {EMAIL: person})
+        dbc.delete(PEOPLE_COLLECT, {EMAIL: person})
         dbc.create(PEOPLE_COLLECT, people_dict[person])
 
 
@@ -110,7 +110,7 @@ def create(name: str, affiliation: str, email: str, role: str):
             NAME: name,
             AFFILIATION: affiliation,
             EMAIL: email,
-            ROLES: [role]
+            ROLES: roles
         }
         print(person)
         dbc.create(PEOPLE_COLLECT, person)
@@ -118,7 +118,7 @@ def create(name: str, affiliation: str, email: str, role: str):
 
 
 def delete(email):
-    del_num = dbc.del_one(PEOPLE_COLLECT, {EMAIL: email})
+    del_num = dbc.delete(PEOPLE_COLLECT, {EMAIL: email})
     return email if del_num == 1 else None
 
 
@@ -127,7 +127,7 @@ def update(email: str, field: str, value: str):
         raise ValueError("Value can't be blank")
     if field != NAME and field != AFFILIATION:
         raise ValueError(f'{field} is not a valid field to update')
-    result = dbc.update_doc(PEOPLE_COLLECT, {EMAIL: email}, {field: value})
+    result = dbc.update(PEOPLE_COLLECT, {EMAIL: email}, {field: value})
     if result.matched_count > 0:
         return email
     return None
@@ -178,7 +178,7 @@ def add_role(email: str, role: str):
     if has_role(person, role):
         raise ValueError("Can't add a duplicate role")
     updated_roles = person[ROLES] + [role]
-    dbc.update_doc(PEOPLE_COLLECT, {EMAIL: email}, {ROLES: updated_roles})
+    dbc.update(PEOPLE_COLLECT, {EMAIL: email}, {ROLES: updated_roles})
     return email
 
 
@@ -191,7 +191,7 @@ def delete_role(email: str, role: str):
     if not has_role(person, role):
         raise ValueError("Role not found")
     updated_roles = [r for r in person[ROLES] if r != role]
-    dbc.update_doc(PEOPLE_COLLECT, {EMAIL: email}, {ROLES: updated_roles})
+    dbc.update(PEOPLE_COLLECT, {EMAIL: email}, {ROLES: updated_roles})
     return email
 
 
