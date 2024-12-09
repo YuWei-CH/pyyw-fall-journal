@@ -28,12 +28,14 @@ def connect_db():
             password = 'mongoPASSWORD'  # temporary put it here for TA to use
 
             if not password:
-                raise ValueError("You must set GAME_MONGO_PW to your password \
+                raise ValueError("You must set MONGO_PW to your password \
                                 to use Mongo in the cloud.")
             print("Connecting to Mongo in the cloud.")
             # Use your MongoDB Atlas connection string
-            uri = f"mongodb+srv://yw5954:{password}@cluster0.q7jza.mongodb.net\
-                /?retryWrites=true&w=majority&appName=Cluster0"
+            uri = (
+                f"mongodb+srv://yw5954:{password}@cluster0.q7jza.mongodb.net/"
+                "?retryWrites=true&w=majority&appName=Cluster0"
+            )
             # Use ServerApi for MongoDB Atlas
             client = pm.MongoClient(uri,
                                     server_api=pm.server_api.ServerApi('1'))
