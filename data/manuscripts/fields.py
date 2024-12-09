@@ -1,24 +1,21 @@
 TITLE = 'title'
-TITLE_DISP_NM = 'Title'
 AUTHOR = 'author'
-AUTHOR_DISP_NM = 'Author'
 REFEREES = 'referees'
-REFEREES_DISP_NM = 'Referees'
 
 DISP_NAME = 'disp_name'
 TEST_FLD_NM = TITLE
-TEST_FLD_DISP_NM = TITLE_DISP_NM
+TEST_FLD_DISP_NM = 'Title'
 
 
 FIELDS = {
     TITLE: {
-        DISP_NAME: TITLE_DISP_NM,
+        DISP_NAME: 'Title',
     },
     AUTHOR: {
-        DISP_NAME: AUTHOR_DISP_NM,
+        DISP_NAME: 'Author',
     },
     REFEREES: {
-        DISP_NAME: REFEREES_DISP_NM,
+        DISP_NAME: 'Referees',
     },
 }
 

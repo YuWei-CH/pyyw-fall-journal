@@ -17,10 +17,10 @@ import server.endpoints as ep
 
 TEST_CLIENT = ep.app.test_client()
 
-import data.people as ppl
 import data.text as txt
 import data.roles as rls
 from data.text import *
+
 
 def test_hello():
     resp = TEST_CLIENT.get(ep.HELLO_EP)
@@ -86,6 +86,7 @@ CREATE_TEST_DATA = {
     ROLES: rls.TEST_CODE
 }
 
+
 @patch('data.people.create', autospec=True, return_value='testEmail@gmail.com')
 def test_create_people(mock_create):
     resp = TEST_CLIENT.put(
@@ -112,8 +113,8 @@ def test_create_people_failed(mock_create):
 
 UPDATE_PEOPLE_DATA = {
     EMAIL: "testEmail@gmail.com",
-    ep.FIELD: NAME,
-    ep.VALUE: "Yirong Wang",
+    NAME: "Yirong Wang",
+    AFFILIATION: "NYU",
 }
 
 
@@ -129,6 +130,16 @@ def test_update_people(mock_update):
     assert isinstance(resp_json, dict)
     assert ep.MESSAGE in resp_json
     assert ep.RETURN in resp_json
+
+
+@patch('data.people.update', autospec=True, side_effect=ValueError("Mocked Exception"))
+def test_update_people_failed(mock_update):
+    resp = TEST_CLIENT.put(
+        f'{ep.PEOPLE_EP}/update',
+        data=json.dumps(UPDATE_PEOPLE_DATA),
+        content_type='application/json'
+    )
+    assert resp.status_code == NOT_ACCEPTABLE
 
 
 ADD_DELETE_ROLE_DATA = {
@@ -151,6 +162,16 @@ def test_add_role(mock_add_role):
     assert ep.RETURN in resp_json
 
 
+@patch('data.people.add_role', autospec=True, side_effect=ValueError("Mocked Exception"))
+def test_add_role_failed(mock_add_role):
+    resp = TEST_CLIENT.put(
+        f'{ep.PEOPLE_EP}/add_role',
+        data=json.dumps(ADD_DELETE_ROLE_DATA),
+        content_type='application/json'
+    )
+    assert resp.status_code == NOT_ACCEPTABLE
+
+
 @patch('data.people.delete_role', autospec=True, return_value='testEmail@gmail.com')
 def test_delete_role(mock_delete_role):
     resp = TEST_CLIENT.delete(
@@ -163,6 +184,16 @@ def test_delete_role(mock_delete_role):
     assert isinstance(resp_json, dict)
     assert ep.MESSAGE in resp_json
     assert ep.RETURN in resp_json
+
+
+@patch('data.people.delete_role', autospec=True, side_effect=ValueError("Mocked Exception"))
+def test_delete_role_failed(mock_delete_role):
+    resp = TEST_CLIENT.delete(
+        f'{ep.PEOPLE_EP}/delete_role',
+        data=json.dumps(ADD_DELETE_ROLE_DATA),
+        content_type='application/json'
+    )
+    assert resp.status_code == NOT_ACCEPTABLE
 
 
 @patch('data.text.read', autospec=True,

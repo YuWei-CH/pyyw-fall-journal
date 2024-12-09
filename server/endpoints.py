@@ -165,8 +165,8 @@ class PersonCreate(Resource):
 
 PEOPLE_UPDATE_FLDS = api.model('UpdatePeopleEntry', {
     ppl.EMAIL: fields.String,
-    FIELD: fields.String,
-    VALUE: fields.String,
+    ppl.NAME: fields.String,
+    ppl.AFFILIATION: fields.String,
 })
 
 
@@ -176,7 +176,6 @@ class PersonUpdate(Resource):
     This class handles the update of a person's information.
     """
     @api.response(HTTPStatus.OK, 'Success. ')
-    @api.response(HTTPStatus.NOT_FOUND, 'No such person. ')
     @api.response(HTTPStatus.NOT_ACCEPTABLE, 'Not acceptable. ')
     @api.expect(PEOPLE_UPDATE_FLDS)
     def put(self):
@@ -185,22 +184,19 @@ class PersonUpdate(Resource):
         """
         try:
             email = request.json.get(ppl.EMAIL)
-            field = request.json.get(FIELD)
-            value = request.json.get(VALUE)
-            ret = ppl.update(email, field, value)
+            name = request.json.get(ppl.NAME)
+            affiliation = request.json.get(ppl.AFFILIATION)
+            ret = ppl.update(email, name, affiliation)
         except Exception as err:
             raise wz.NotAcceptable(f'Could not update person: '
                                    f'{err=}')
-        if ret is None:
-            raise wz.NotFound(f'Error updating {email}: '
-                              f'person with this email does not exist. ')
         return {
-            MESSAGE: f'{field} updated for {email}!',
+            MESSAGE: f'{email} updated!',
             RETURN: ret,
         }
 
 
-PEOPLE_ROLE_UPDATE_FLDS = api.model('AddNewRoleEntry', {
+PEOPLE_ROLE_UPDATE_FLDS = api.model('UpdateRoleEntry', {
     ppl.EMAIL: fields.String,
     ROLE: fields.String,
 })
@@ -212,7 +208,6 @@ class PersonAddRole(Resource):
     This class handles the update of a people's role (ADD).
     """
     @api.response(HTTPStatus.OK, 'Success. ')
-    @api.response(HTTPStatus.NOT_FOUND, 'No such page. ')
     @api.response(HTTPStatus.NOT_ACCEPTABLE, 'Not acceptable. ')
     @api.expect(PEOPLE_ROLE_UPDATE_FLDS)
     def put(self):
@@ -223,10 +218,8 @@ class PersonAddRole(Resource):
             email = request.json.get(ppl.EMAIL)
             role = request.json.get(ROLE)
             ret = ppl.add_role(email, role)
-        except ValueError as err:
-            raise wz.NotFound(f'Could not add role: {err}')
         except Exception as err:
-            raise wz.NotAcceptable(f'Error occurred when add role: {err}')
+            raise wz.NotAcceptable(f'Could not add role: {err}')
         return {
             MESSAGE: f'{role} added for {email}!',
             RETURN: ret,
@@ -239,7 +232,6 @@ class PersonDeleteRole(Resource):
     This class handles the deletion of a people's role (DELETE).
     """
     @api.response(HTTPStatus.OK, 'Success. ')
-    @api.response(HTTPStatus.NOT_FOUND, 'Person or role not found. ')
     @api.response(HTTPStatus.NOT_ACCEPTABLE, 'Not acceptable. ')
     @api.expect(PEOPLE_ROLE_UPDATE_FLDS)
     def delete(self):
@@ -247,18 +239,11 @@ class PersonDeleteRole(Resource):
         Delete people role.
         """
         try:
-            # Extract email and role from the request
             email = request.json.get(ppl.EMAIL)
             role = request.json.get(ROLE)
-
-            # Call the delete_role function
             ret = ppl.delete_role(email, role)
-        except ValueError as err:
-            raise wz.NotFound(f'Could not delete role: {err}')
         except Exception as err:
-            raise wz.NotAcceptable(f'Error occurred when delete role: {err}')
-
-        # Return success response
+            raise wz.NotAcceptable(f'Could not delete role: {err}')
         return {
             MESSAGE: f'{role} deleted for {email}!',
             RETURN: ret,
@@ -348,7 +333,6 @@ class TextUpdate(Resource):
     This class handles the update of a text's information.
     """
     @api.response(HTTPStatus.OK, 'Success. ')
-    @api.response(HTTPStatus.NOT_FOUND, 'No such page. ')
     @api.response(HTTPStatus.NOT_ACCEPTABLE, 'Not acceptable. ')
     @api.expect(TEXT_UPDATE_FLDS)
     def put(self):

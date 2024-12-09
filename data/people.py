@@ -94,15 +94,14 @@ def delete(email):
     return email if del_num == 1 else None
 
 
-def update(email: str, field: str, value: str):
-    if not value.strip():
-        raise ValueError("Value can't be blank")
-    if field != NAME and field != AFFILIATION:
-        raise ValueError(f'{field} is not a valid field to update')
-    result = dbc.update(PEOPLE_COLLECT, {EMAIL: email}, {field: value})
-    if result.matched_count > 0:
-        return email
-    return None
+def update(email: str, name: str, affiliation: str):
+    if not exists(email):
+        raise ValueError(f'Updating non-existent person: {email=}')
+    if not name.strip() or not affiliation.strip():
+        raise ValueError("Name or Affiliation can't be blank. ")
+    dbc.update(PEOPLE_COLLECT, {EMAIL: email},
+               {NAME: name, AFFILIATION: affiliation})
+    return email
 
 
 def has_role(person: dict, role: str):
@@ -140,13 +139,11 @@ def get_masthead() -> dict:
 
 
 def add_role(email: str, role: str):
-    if not role.strip():
-        raise ValueError("Can't add an empty role")
-    person = dbc.read_one(PEOPLE_COLLECT, {EMAIL: email})
-    if not person:
-        raise ValueError(f"Person {email} not found")
+    if not exists(email):
+        raise ValueError(f'Updating non-existent person: {email=}')
     if not rls.is_valid(role):
         raise ValueError(f'Invalid role: {role}')
+    person = read_one(email)
     if has_role(person, role):
         raise ValueError("Can't add a duplicate role")
     updated_roles = person[ROLES] + [role]
@@ -155,11 +152,9 @@ def add_role(email: str, role: str):
 
 
 def delete_role(email: str, role: str):
-    if not role.strip():
-        raise ValueError("Can't delete an empty role")
-    person = dbc.read_one(PEOPLE_COLLECT, {EMAIL: email})
-    if not person:
-        raise ValueError(f"Person {email} not found")
+    if not exists(email):
+        raise ValueError(f'Updating non-existent person: {email=}')
+    person = read_one(email)
     if not has_role(person, role):
         raise ValueError("Role not found")
     updated_roles = [r for r in person[ROLES] if r != role]
