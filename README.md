@@ -30,7 +30,7 @@ We will be using Atlas for our service. Provided over AWS.
 mongodb+srv://kc0000:PASSWORD@cluster0.q7jza.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0   
 I will not be sharing the username/password here. 
 Replace kc0000 and PASSWORD accordingly. 
-3. You may need to set these variables. One way is to add this to the bash file of the enviroment. 
+3. You may need to set these variables. One way is to add this to the bash file of the enviroment.   
 `export CLOUD_MONGO="CLOUD"`   
 `export GAME_MONGO_PW="PASSWORD"`  # Replace with your actual password
 4. You will probably need to update your CA certificate to verify the ssl connection. You can also manually set `ssl=False` in the connection URL, which I do not recommend.  

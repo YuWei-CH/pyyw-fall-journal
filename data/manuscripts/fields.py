@@ -1,13 +1,24 @@
 TITLE = 'title'
-DISP_NAME = 'disp_name'
+TITLE_DISP_NM = 'Title'
+AUTHOR = 'author'
+AUTHOR_DISP_NM = 'Author'
+REFEREES = 'referees'
+REFEREES_DISP_NM = 'Referees'
 
+DISP_NAME = 'disp_name'
 TEST_FLD_NM = TITLE
-TEST_FLD_DISP_NM = 'Title'
+TEST_FLD_DISP_NM = TITLE_DISP_NM
 
 
 FIELDS = {
     TITLE: {
-        DISP_NAME: TEST_FLD_DISP_NM,
+        DISP_NAME: TITLE_DISP_NM,
+    },
+    AUTHOR: {
+        DISP_NAME: AUTHOR_DISP_NM,
+    },
+    REFEREES: {
+        DISP_NAME: REFEREES_DISP_NM,
     },
 }
 
@@ -17,7 +28,7 @@ def get_flds() -> dict:
 
 
 def get_fld_names() -> list:
-    return FIELDS.keys()
+    return list(FIELDS.keys())
 
 
 def get_disp_name(fld_nm: str) -> str:
