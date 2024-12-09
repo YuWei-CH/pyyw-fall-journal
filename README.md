@@ -32,7 +32,7 @@ I will not be sharing the username/password here.
 Replace kc0000 and PASSWORD accordingly. 
 3. You may need to set these variables. One way is to add this to the bash file of the enviroment.   
 `export CLOUD_MONGO="CLOUD"`   
-`export GAME_MONGO_PW="PASSWORD"`  # Replace with your actual password
+`export MONGO_PW="PASSWORD"`  # Replace with your actual password
 4. You will probably need to update your CA certificate to verify the ssl connection. You can also manually set `ssl=False` in the connection URL, which I do not recommend.  
 `pip install --upgrade certifi`  
 `/Applications/Python\ 3.12/Install\ Certificates.command`
