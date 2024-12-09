@@ -22,7 +22,7 @@ def connect_db():
         print("Setting client because it is None.")
         if os.environ.get("CLOUD_MONGO", LOCAL) == CLOUD:
             # Check environment variable
-            password = os.environ.get("GAME_MONGO_PW")
+            password = os.environ.get("MONGO_PW")
             print('PASSWORD: ', password)
 
             password = 'mongoPASSWORD'  # temporary put it here for TA to use

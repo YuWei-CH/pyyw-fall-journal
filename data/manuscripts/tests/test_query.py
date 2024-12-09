@@ -54,6 +54,10 @@ def test_handle_action_bad_action():
 def test_handle_action_valid_return():
     for state in mqry.get_states():
         for action in mqry.get_valid_actions_by_state(state):
+            new_state = mqry.handle_action(state, action, 
+                                           mqry.SAMPLE_MANU)
+            print(f'{new_state=}')
+        for action in mqry.get_valid_actions_by_state(state):
             print(f'{action=}')
             new_state = mqry.handle_action(state, action,
                                            mqry.SAMPLE_MANU)
