@@ -1,12 +1,22 @@
 import data.manuscripts.form_filler as ff
 
-from data.manuscripts.fields import TITLE
+from data.manuscripts.fields import TITLE, AUTHOR, REFEREES
 
 FORM_FLDS = [
     {
         ff.FLD_NM: TITLE,
-        ff.QSTN: 'Sample:',
+        ff.QSTN: 'Title:',
         ff.PARAM_TYPE: ff.QUERY_STR,
+    },
+    {
+        ff.FLD_NM: AUTHOR,
+        ff.QSTN: 'Author:',
+        ff.PARAM_TYPE: ff.QUERY_STR,
+    },
+    {
+        ff.FLD_NM: REFEREES,
+        ff.QSTN: 'Referees:',
+        ff.PARAM_TYPE: ff.LIST,
     },
 ]
 
@@ -15,7 +25,7 @@ def get_form() -> list:
     return FORM_FLDS
 
 
-def get_form_descr():
+def get_form_descr() -> dict:
     """
     For Swagger!
     """
