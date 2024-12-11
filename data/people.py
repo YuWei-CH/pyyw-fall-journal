@@ -84,7 +84,7 @@ def create(name: str, affiliation: str, email: str, role: str):
             EMAIL: email,
             ROLES: roles
         }
-        print(person)
+        # print(person)
         dbc.create(PEOPLE_COLLECT, person)
         return email
 

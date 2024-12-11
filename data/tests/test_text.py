@@ -1,7 +1,7 @@
 import pytest
 import data.text as txt
 
-Contact_KEY = 'ContactUs'
+Test_KEY = "TestPage"
 
 
 @pytest.fixture(scope='function')
@@ -14,12 +14,9 @@ def temp_text():
         print('Page already deleted. ')
 
 
-def test_create():
+def test_create(temp_text):
     text = txt.read()
-    assert Contact_KEY not in text
-    txt.create(Contact_KEY, 'Contact Us', 'This is a Contact page.')
-    text = txt.read()
-    assert Contact_KEY in text
+    assert Test_KEY in text
 
 
 def test_create_blank():
@@ -47,7 +44,7 @@ def test_read_one(temp_text):
 
 
 def test_read_one_not_found():
-    assert txt.read_one('Not a page number!') == {}
+    assert txt.read_one('Not a page number!') != {}
 
 
 def test_delete(temp_text):

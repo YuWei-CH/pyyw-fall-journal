@@ -2,24 +2,30 @@
 This module interfaces to our user data.
 """
 
+import data.db_connect as dbc
+
 # fields
+TEXT_COLLECT = 'text'
 PAGE_NUMBER = 'pageNumber'
 TITLE = 'title'
 TEXT = 'text'
 
-HOME_PAGE_NUMBER = 'HomePage'
-SUBM_PAGE_NUMBER = 'SubmissionsPage'
+# HOME_PAGE_NUMBER = 'HomePage'
+# SUBM_PAGE_NUMBER = 'SubmissionsPage'
 
-text_dict = {
-    HOME_PAGE_NUMBER: {
-        TITLE: 'Home Page',
-        TEXT: 'This is a journal about building API servers.',
-    },
-    SUBM_PAGE_NUMBER: {
-        TITLE: 'Submissions Page',
-        TEXT: 'All submissions must be original work in Word format.',
-    },
-}
+client = dbc.connect_db()
+# print(f'{client=}')
+
+# text_dict = {
+#     HOME_PAGE_NUMBER: {
+#         TITLE: 'Home Page',
+#         TEXT: 'This is a journal about building API servers.',
+#     },
+#     SUBM_PAGE_NUMBER: {
+#         TITLE: 'Submissions Page',
+#         TEXT: 'All submissions must be original work in Word format.',
+#     },
+# }
 
 
 def read():
@@ -29,17 +35,14 @@ def read():
         - Returns a dictionary of users page_number on user email.
         - Each user email must be the page_number for another dictionary.
     """
-    text = text_dict
+    text = dbc.read_dict(TEXT_COLLECT, PAGE_NUMBER)
     return text
 
 
 def read_one(page_number: str) -> dict:
     # This should take a page number and return the page dictionary
     # for that page number. Return an empty dictionary of number not found.
-    result = {}
-    if page_number in text_dict:
-        result = text_dict[page_number]
-    return result
+    return dbc.read_one(TEXT_COLLECT, {PAGE_NUMBER: page_number})
 
 
 def delete(page_number: str):
@@ -48,27 +51,33 @@ def delete(page_number: str):
     """
     texts = read()
     if page_number in texts:
-        del texts[page_number]
-        return page_number
+        del_num = dbc.delete(TEXT_COLLECT, {PAGE_NUMBER: page_number})
+        return page_number if del_num == 1 else None
     else:
         return None
 
 
 def create(page_number: str, title: str, text: str):
-    if page_number in text_dict:
+    texts = read()
+    if page_number in texts:
         raise ValueError(f'Adding duplicate {page_number=}')
     if not title.strip() or not text.strip():
         raise ValueError('Title or text can not be blank')
-    text_dict[page_number] = {TITLE: title, TEXT: text}
+    new_text = {TITLE: title, TEXT: text, PAGE_NUMBER: page_number}
+    dbc.create(TEXT_COLLECT, new_text)
     return page_number
 
 
 def update(page_number: str, field: str, value: str):
+    texts = read()
     if not value.strip():
         raise ValueError("Value can't be blank")
-    if page_number not in text_dict:
+    if page_number not in texts:
         raise ValueError(f'{page_number} do not exist')
-    if field != TITLE and field != TEXT:
+    if field == TITLE:
+        dbc.update(TEXT_COLLECT, {PAGE_NUMBER: page_number}, {TITLE: value})
+    elif field == TEXT:
+        dbc.update(TEXT_COLLECT, {PAGE_NUMBER: page_number}, {TEXT: value})
+    else:
         raise ValueError(f'{field} is not a valid field to update')
-    text_dict[page_number][field] = value
     return page_number
