@@ -12,6 +12,7 @@ import werkzeug.exceptions as wz
 
 import data.people as ppl
 import data.text as txt
+import data.manuscript as ms
 
 app = Flask(__name__)
 CORS(app)
@@ -45,6 +46,8 @@ FIELD = 'field'
 VALUE = 'value'
 
 ROLE = 'role'
+
+MANUSCRIPT_EP = '/manuscript'
 
 
 @api.route(HELLO_EP)
@@ -363,3 +366,192 @@ class Masthead(Resource):
     """
     def get(self):
         return {MASTHEAD: ppl.get_masthead()}
+
+
+MANU_CREATE_FLDS = api.model('AddNewManuscriptEntry', {
+    ms.TITLE: fields.String(
+        required=True, description="Title of the manuscript"
+        ),
+    ms.AUTHOR: fields.String(
+        required=True, description="Author of the manuscript"
+        ),
+})
+
+MANU_UPDATE_FLDS = api.model('UpdateManuscriptEntry', {
+    ms.TITLE: fields.String(
+        required=True,
+        description="Title of the manuscript (required to identify)"
+        ),
+    ms.AUTHOR: fields.String(description="New author name"),
+    ms.REFEREES: fields.List(
+        fields.String, description="List of referees"
+        ),
+    ms.STATE: fields.String(description="New state for the manuscript"),
+})
+
+MANU_ADD_REF_FLDS = api.model('AddRefereeEntry', {
+    ms.TITLE: fields.String(
+        required=True, description="Title of the manuscript"
+        ),
+    'referee': fields.String(required=True, description="Referee to add"),
+})
+
+MANU_DEL_REF_FLDS = api.model('DeleteRefereeEntry', {
+    ms.TITLE: fields.String(
+        required=True, description="Title of the manuscript"
+        ),
+    'referee': fields.String(required=True, description="Referee to remove"),
+})
+
+MANU_ACTION_FLDS = api.model('ActionEntry', {
+    ms.TITLE: fields.String(
+        required=True, description="Title of the manuscript"
+        ),
+    'action': fields.String(required=True, description="Action to perform"),
+    'referee': fields.String(description="Referee if action requires one"),
+})
+
+
+@api.route(MANUSCRIPT_EP)
+class Manuscripts(Resource):
+    def get(self):
+        """
+        Retrieve all manuscripts.
+        """
+        return ms.read()
+
+
+@api.route(f'{MANUSCRIPT_EP}/<string:title>')
+class Manuscript(Resource):
+    def get(self, title):
+        """
+        Retrieve a single manuscript by title.
+        """
+        manu = ms.read_one(title)
+        if manu:
+            return manu
+        else:
+            raise wz.NotFound(f'No such manuscript: {title}')
+
+    @api.response(HTTPStatus.OK, 'Success.')
+    @api.response(HTTPStatus.NOT_FOUND, 'No such manuscript.')
+    def delete(self, title):
+        """
+        Delete a manuscript by title.
+        """
+        ret = ms.delete(title)
+        if ret is not None:
+            return {ms.TITLE: ret, 'message': 'Deleted'}
+        else:
+            raise wz.NotFound(f'No such manuscript: {title}')
+
+
+@api.route(f'{MANUSCRIPT_EP}/create')
+class ManuscriptCreate(Resource):
+    @api.response(HTTPStatus.OK, 'Success.')
+    @api.response(HTTPStatus.NOT_ACCEPTABLE, 'Not acceptable.')
+    @api.expect(MANU_CREATE_FLDS)
+    def put(self):
+        """
+        Create a new manuscript.
+        """
+        try:
+            title = request.json.get(ms.TITLE)
+            author = request.json.get(ms.AUTHOR)
+            ret = ms.create(title, author)
+        except Exception as err:
+            raise wz.NotAcceptable(f'Could not create manuscript: {err}')
+        return {
+            'message': 'Manuscript created!',
+            'return': ret,
+        }
+
+
+@api.route(f'{MANUSCRIPT_EP}/update')
+class ManuscriptUpdate(Resource):
+    @api.response(HTTPStatus.OK, 'Success.')
+    @api.response(HTTPStatus.NOT_ACCEPTABLE, 'Not acceptable.')
+    @api.expect(MANU_UPDATE_FLDS)
+    def put(self):
+        """
+        Update a manuscript's author, referees, or state.
+        """
+        try:
+            title = request.json.get(ms.TITLE)
+            author = request.json.get(ms.AUTHOR)
+            referees = request.json.get(ms.REFEREES)
+            state = request.json.get(ms.STATE)
+            ret = ms.update(
+                title, author=author, referees=referees, state=state
+                )
+        except Exception as err:
+            raise wz.NotAcceptable(f'Could not update manuscript: {err}')
+        return {
+            'message': f'{title} updated!',
+            'return': ret,
+        }
+
+
+@api.route(f'{MANUSCRIPT_EP}/add_referee')
+class ManuscriptAddReferee(Resource):
+    @api.response(HTTPStatus.OK, 'Success.')
+    @api.response(HTTPStatus.NOT_ACCEPTABLE, 'Not acceptable.')
+    @api.expect(MANU_ADD_REF_FLDS)
+    def put(self):
+        """
+        Add a referee to a manuscript.
+        """
+        try:
+            title = request.json.get(ms.TITLE)
+            referee = request.json.get('referee')
+            ret = ms.add_referee(title, referee)
+        except Exception as err:
+            raise wz.NotAcceptable(f'Could not add referee: {err}')
+        return {
+            'message': f'Referee {referee} added to {title}!',
+            'return': ret,
+        }
+
+
+@api.route(f'{MANUSCRIPT_EP}/remove_referee')
+class ManuscriptRemoveReferee(Resource):
+    @api.response(HTTPStatus.OK, 'Success.')
+    @api.response(HTTPStatus.NOT_ACCEPTABLE, 'Not acceptable.')
+    @api.expect(MANU_DEL_REF_FLDS)
+    def delete(self):
+        """
+        Remove a referee from a manuscript.
+        """
+        try:
+            title = request.json.get(ms.TITLE)
+            referee = request.json.get('referee')
+            ret = ms.remove_referee(title, referee)
+        except Exception as err:
+            raise wz.NotAcceptable(f'Could not remove referee: {err}')
+        return {
+            'message': f'Referee {referee} removed from {title}!',
+            'return': ret,
+        }
+
+
+@api.route(f'{MANUSCRIPT_EP}/action')
+class ManuscriptAction(Resource):
+    @api.response(HTTPStatus.OK, 'Success.')
+    @api.response(HTTPStatus.NOT_ACCEPTABLE, 'Not acceptable.')
+    @api.expect(MANU_ACTION_FLDS)
+    def put(self):
+        """
+        Perform an action on a manuscript (e.g. accept, reject, assign_ref).
+        """
+        try:
+            title = request.json.get(ms.TITLE)
+            action = request.json.get('action')
+            referee = request.json.get('referee')
+            new_state = ms.handle_action_on_manuscript(title, action, referee)
+        except Exception as err:
+            raise wz.NotAcceptable(f'Could not perform action: {err}')
+        return {
+            'message':
+                f'Action {action} perform on {title}, new state: {new_state}',
+            'return': new_state,
+        }
