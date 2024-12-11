@@ -7,6 +7,9 @@ from copy import deepcopy
 ED_CODE = 'ED'
 ME_CODE = 'ME'
 CE_CODE = 'CE'
+MANAGING_CODE = "MA"
+COPY_CODE = "CP"
+TYPESETTERS_CODE = "TS"
 AUTHOR_CODE = 'AU'
 REFREE_CODE = 'RE'
 
@@ -18,6 +21,9 @@ ROLES = {
     CE_CODE: 'Consulting Editor',
     AUTHOR_CODE: 'Author',
     REFREE_CODE: 'Referee',
+    MANAGING_CODE: 'Managing',
+    COPY_CODE: "Copy",
+    TYPESETTERS_CODE: "Typesetters"
 }
 
 MH_ROLES = [ED_CODE, ME_CODE, CE_CODE]
