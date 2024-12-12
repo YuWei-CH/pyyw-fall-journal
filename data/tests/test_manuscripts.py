@@ -180,6 +180,11 @@ def test_delete(temp_manuscript):
     assert not ms.exists(temp_manuscript)
 
 
+def test_delete_not_found():
+    result = ms.delete('Not an existing title!')
+    assert result is None
+
+
 def test_update_blank_author(temp_manuscript):
     with pytest.raises(ValueError):
         ms.update(temp_manuscript, " ", GOOD_EMAIL, 

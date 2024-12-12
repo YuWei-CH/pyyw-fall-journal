@@ -42,9 +42,6 @@ DELETED = 'Deleted'
 
 TEXT_EP = '/text'
 
-FIELD = 'field'
-VALUE = 'value'
-
 ROLE = 'role'
 
 MANUSCRIPT_EP = '/manuscript'
@@ -124,6 +121,9 @@ class Person(Resource):
     @api.response(HTTPStatus.OK, 'Success.')
     @api.response(HTTPStatus.NOT_FOUND, 'No such person.')
     def delete(self, email):
+        """
+        Delete a person by email.
+        """
         ret = ppl.delete(email)
         if ret is not None:
             return {DELETED: ret}
@@ -265,10 +265,10 @@ class Texts(Resource):
         return txt.read()
 
 
-TEXT_CREATE_FLDS = api.model('AddNewTextEntry', {
+TEXT_FLDS = api.model('TextEntry', {
+    txt.PAGE_NUMBER: fields.String,
     txt.TITLE: fields.String,
     txt.TEXT: fields.String,
-    txt.PAGE_NUMBER: fields.String,
 })
 
 
@@ -279,7 +279,7 @@ class TextCreate(Resource):
     """
     @api.response(HTTPStatus.OK, 'Success. ')
     @api.response(HTTPStatus.NOT_ACCEPTABLE, 'Not acceptable. ')
-    @api.expect(TEXT_CREATE_FLDS)
+    @api.expect(TEXT_FLDS)
     def put(self):
         """
         Add a text.
@@ -316,18 +316,14 @@ class Text(Resource):
     @api.response(HTTPStatus.OK, 'Success.')
     @api.response(HTTPStatus.NOT_FOUND, 'No such text.')
     def delete(self, page_number):
+        """
+        Delete a text by page number.
+        """
         ret = txt.delete(page_number)
         if ret is not None:
             return {DELETED: ret}
         else:
             raise wz.NotFound(f'No such text: {page_number}')
-
-
-TEXT_UPDATE_FLDS = api.model('UpdateTextEntry', {
-    txt.PAGE_NUMBER: fields.String,
-    FIELD: fields.String,
-    VALUE: fields.String,
-})
 
 
 @api.route(f'{TEXT_EP}/update')
@@ -337,22 +333,22 @@ class TextUpdate(Resource):
     """
     @api.response(HTTPStatus.OK, 'Success. ')
     @api.response(HTTPStatus.NOT_ACCEPTABLE, 'Not acceptable. ')
-    @api.expect(TEXT_UPDATE_FLDS)
+    @api.expect(TEXT_FLDS)
     def put(self):
         """
         Update text information.
         """
         try:
             page_number = request.json.get(txt.PAGE_NUMBER)
-            field = request.json.get(FIELD)
-            value = request.json.get(VALUE)
-            txt.update(page_number, field, value)
+            title = request.json.get(txt.TITLE)
+            text = request.json.get(txt.TEXT)
+            ret = txt.update(page_number, title, text)
         except Exception as err:
             raise wz.NotAcceptable(f'Could not update text: '
                                    f'{err=}')
         return {
-            MESSAGE: f'{field} updated for {page_number}!',
-            RETURN: page_number,
+            MESSAGE: f'{page_number} updated!',
+            RETURN: ret,
         }
 
 
@@ -365,6 +361,9 @@ class Masthead(Resource):
     Get a journal's masthead.
     """
     def get(self):
+        """
+        Retrieve a journal's masthead.
+        """
         return {MASTHEAD: ppl.get_masthead()}
 
 

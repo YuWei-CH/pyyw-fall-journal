@@ -228,10 +228,10 @@ def test_read_one_text_not_found(mock_read):
     assert resp.status_code == NOT_FOUND
 
 
-TEXT_CREATE_TEST_DATA = {
+TEXT_TEST_DATA = {
+    PAGE_NUMBER: TEST_PAGE_NUMBER,
     TITLE: "Test Title",
     TEXT: "Test Text",
-    PAGE_NUMBER: TEST_PAGE_NUMBER,
 }
 
 
@@ -239,7 +239,7 @@ TEXT_CREATE_TEST_DATA = {
 def test_create_text(mock_create):
     resp = TEST_CLIENT.put(
         f'{ep.TEXT_EP}/create',
-        data=json.dumps(TEXT_CREATE_TEST_DATA),
+        data=json.dumps(TEXT_TEST_DATA),
         content_type='application/json'
     )
     assert resp.status_code == OK
@@ -253,7 +253,7 @@ def test_create_text(mock_create):
 def test_create_text_failed(mock_create):
     resp = TEST_CLIENT.put(
         f'{ep.TEXT_EP}/create',
-        data=json.dumps(TEXT_CREATE_TEST_DATA),
+        data=json.dumps(TEXT_TEST_DATA),
         content_type='application/json'
     )
     assert resp.status_code == NOT_ACCEPTABLE
@@ -274,18 +274,11 @@ def test_delete_text_not_found(mock_delete):
     assert resp.status_code == NOT_FOUND
 
 
-UPDATE_TEXT_DATA = {
-    txt.PAGE_NUMBER: TEST_PAGE_NUMBER,
-    ep.FIELD: txt.TITLE, 
-    ep.VALUE: "Test Title",
-}
-
-
 @patch('data.text.update', autospec=True, return_value=TEST_PAGE_NUMBER)
 def test_update_text(mock_update):
     resp = TEST_CLIENT.put(
         f'{ep.TEXT_EP}/update',
-        data=json.dumps(UPDATE_TEXT_DATA),
+        data=json.dumps(TEXT_TEST_DATA),
         content_type='application/json'
     )
     assert resp.status_code == OK
@@ -299,7 +292,7 @@ def test_update_text(mock_update):
 def test_update_text_failed(mock_update):
     resp = TEST_CLIENT.put(
         f'{ep.TEXT_EP}/update',
-        data=json.dumps(UPDATE_TEXT_DATA),
+        data=json.dumps(TEXT_TEST_DATA),
         content_type='application/json'
     )
     assert resp.status_code == NOT_ACCEPTABLE

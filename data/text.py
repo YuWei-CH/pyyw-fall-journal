@@ -32,39 +32,38 @@ def read_one(page_number: str) -> dict:
     return dbc.read_one(TEXT_COLLECT, {PAGE_NUMBER: page_number})
 
 
+def exists(page_number: str) -> bool:
+    return read_one(page_number) is not None
+
+
+def is_valid_text(page_number: str, title: str, text: str):
+    if not page_number.strip():
+        raise ValueError('Page number can not be blank')
+    if not title.strip():
+        raise ValueError('Title can not be blank')
+    if not text.strip():
+        raise ValueError('Text can not be blank')
+    return True
+
+
 def delete(page_number: str):
-    """
-    Deletes a page entry from the text dictionary.
-    """
-    texts = read()
-    if page_number in texts:
-        del_num = dbc.delete(TEXT_COLLECT, {PAGE_NUMBER: page_number})
-        return page_number if del_num == 1 else None
-    else:
-        return None
+    del_num = dbc.delete(TEXT_COLLECT, {PAGE_NUMBER: page_number})
+    return page_number if del_num == 1 else None
 
 
 def create(page_number: str, title: str, text: str):
-    texts = read()
-    if page_number in texts:
+    if exists(page_number):
         raise ValueError(f'Adding duplicate {page_number=}')
-    if not title.strip() or not text.strip():
-        raise ValueError('Title or text can not be blank')
-    new_text = {TITLE: title, TEXT: text, PAGE_NUMBER: page_number}
-    dbc.create(TEXT_COLLECT, new_text)
-    return page_number
+    if is_valid_text(page_number, title, text):
+        new_text = {PAGE_NUMBER: page_number, TITLE: title, TEXT: text}
+        dbc.create(TEXT_COLLECT, new_text)
+        return page_number
 
 
-def update(page_number: str, field: str, value: str):
-    texts = read()
-    if not value.strip():
-        raise ValueError("Value can't be blank")
-    if page_number not in texts:
-        raise ValueError(f'{page_number} do not exist')
-    if field == TITLE:
-        dbc.update(TEXT_COLLECT, {PAGE_NUMBER: page_number}, {TITLE: value})
-    elif field == TEXT:
-        dbc.update(TEXT_COLLECT, {PAGE_NUMBER: page_number}, {TEXT: value})
-    else:
-        raise ValueError(f'{field} is not a valid field to update')
-    return page_number
+def update(page_number: str, title: str, text: str):
+    if not exists(page_number):
+        raise ValueError(f'Updating non-existent page: {page_number=}')
+    if is_valid_text(page_number, title, text):
+        dbc.update(TEXT_COLLECT, {PAGE_NUMBER: page_number},
+                   {TITLE: title, TEXT: text})
+        return page_number

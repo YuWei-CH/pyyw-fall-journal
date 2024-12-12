@@ -204,6 +204,11 @@ def test_delete(temp_person):
     assert not ppl.exists(temp_person)
 
 
+def test_delete_not_found():
+    result = ppl.delete('Not an existing email!')
+    assert result is None
+
+
 def test_update_blank_value(temp_person):
     with pytest.raises(ValueError):
         ppl.update(temp_person, " ", " ")
