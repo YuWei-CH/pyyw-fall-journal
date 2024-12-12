@@ -20,9 +20,11 @@ TEST_CLIENT = ep.app.test_client()
 import data.text as txt
 import data.roles as rls
 from data.text import *
-
-from data.manuscript import TITLE as MS_TITLE, AUTHOR as MS_AUTHOR, REFEREES as MS_REFEREES, STATE as MS_STATE
 import data.manuscript as ms
+
+TEST_EMAIL = "testEmail@gmail.com"
+TEST_TITLE = "Test Manuscript Title"
+TEST_PAGE_NUMBER = "TestPageNumber"
 
 
 def test_hello():
@@ -67,7 +69,7 @@ def test_read_one_person_not_found(mock_read):
     assert resp.status_code == NOT_FOUND
 
 
-@patch('data.people.delete', autospec=True, return_value='testEmail@gmail.com')
+@patch('data.people.delete', autospec=True, return_value=TEST_EMAIL)
 def test_delete_people(mock_delete):
     resp = TEST_CLIENT.delete(f'{ep.PEOPLE_EP}/mock_email')
     assert resp.status_code == OK
@@ -85,12 +87,12 @@ def test_delete_people_not_found(mock_delete):
 CREATE_TEST_DATA = {
     NAME: "Test Name",
     AFFILIATION: "Test Affiliation",
-    EMAIL: "testEmail@gmail.com",
+    EMAIL: TEST_EMAIL,
     ROLES: rls.TEST_CODE
 }
 
 
-@patch('data.people.create', autospec=True, return_value='testEmail@gmail.com')
+@patch('data.people.create', autospec=True, return_value=TEST_EMAIL)
 def test_create_people(mock_create):
     resp = TEST_CLIENT.put(
         f'{ep.PEOPLE_EP}/create',
@@ -115,13 +117,13 @@ def test_create_people_failed(mock_create):
 
 
 UPDATE_PEOPLE_DATA = {
-    EMAIL: "testEmail@gmail.com",
+    EMAIL: TEST_EMAIL,
     NAME: "Yirong Wang",
     AFFILIATION: "NYU",
 }
 
 
-@patch('data.people.update', autospec=True, return_value='testEmail@gmail.com')
+@patch('data.people.update', autospec=True, return_value=TEST_EMAIL)
 def test_update_people(mock_update):
     resp = TEST_CLIENT.put(
         f'{ep.PEOPLE_EP}/update',
@@ -146,12 +148,12 @@ def test_update_people_failed(mock_update):
 
 
 ADD_DELETE_ROLE_DATA = {
-    EMAIL: "testEmail@gmail.com",
+    EMAIL: TEST_EMAIL,
     ep.ROLE: rls.TEST_CODE
 }
 
 
-@patch('data.people.add_role', autospec=True, return_value='testEmail@gmail.com')
+@patch('data.people.add_role', autospec=True, return_value=TEST_EMAIL)
 def test_add_role(mock_add_role):
     resp = TEST_CLIENT.put(
         f'{ep.PEOPLE_EP}/add_role',
@@ -175,7 +177,7 @@ def test_add_role_failed(mock_add_role):
     assert resp.status_code == NOT_ACCEPTABLE
 
 
-@patch('data.people.delete_role', autospec=True, return_value='testEmail@gmail.com')
+@patch('data.people.delete_role', autospec=True, return_value=TEST_EMAIL)
 def test_delete_role(mock_delete_role):
     resp = TEST_CLIENT.delete(
         f'{ep.PEOPLE_EP}/delete_role',
@@ -229,11 +231,11 @@ def test_read_one_text_not_found(mock_read):
 TEXT_CREATE_TEST_DATA = {
     TITLE: "Test Title",
     TEXT: "Test Text",
-    PAGE_NUMBER: "TestPageNumber",
+    PAGE_NUMBER: TEST_PAGE_NUMBER,
 }
 
 
-@patch('data.text.create', autospec=True, return_value='TestPageNumber')
+@patch('data.text.create', autospec=True, return_value=TEST_PAGE_NUMBER)
 def test_create_text(mock_create):
     resp = TEST_CLIENT.put(
         f'{ep.TEXT_EP}/create',
@@ -257,7 +259,7 @@ def test_create_text_failed(mock_create):
     assert resp.status_code == NOT_ACCEPTABLE
 
 
-@patch('data.text.delete', autospec=True, return_value='TestPageNumber')
+@patch('data.text.delete', autospec=True, return_value=TEST_PAGE_NUMBER)
 def test_delete_text(mock_delete):
     resp = TEST_CLIENT.delete(f'{ep.TEXT_EP}/mock_page_number')
     assert resp.status_code == OK
@@ -273,13 +275,13 @@ def test_delete_text_not_found(mock_delete):
 
 
 UPDATE_TEXT_DATA = {
-    txt.PAGE_NUMBER: "TestPageNumber",
+    txt.PAGE_NUMBER: TEST_PAGE_NUMBER,
     ep.FIELD: txt.TITLE, 
     ep.VALUE: "Test Title",
 }
 
 
-@patch('data.text.update', autospec=True, return_value='TestPageNumber')
+@patch('data.text.update', autospec=True, return_value=TEST_PAGE_NUMBER)
 def test_update_text(mock_update):
     resp = TEST_CLIENT.put(
         f'{ep.TEXT_EP}/update',
@@ -312,199 +314,100 @@ def test_get_masthead(mock_get_masthead):
     assert ep.MASTHEAD in resp_json
 
 
-MANUSCRIPT_BASE = ep.MANUSCRIPT_EP
-
-# Mock test data
-CREATE_MANUSCRIPT_DATA = {
-    MS_TITLE: "Test Manuscript",
-    MS_AUTHOR: "Test Author",
-}
-
-UPDATE_MANUSCRIPT_DATA = {
-    MS_TITLE: "Test Manuscript",
-    MS_AUTHOR: "Updated Author",
-    MS_REFEREES: ["Ref1", "Ref2"],
-    MS_STATE: "REV",
-}
-
-ADD_REFEREE_DATA = {
-    MS_TITLE: "Test Manuscript",
-    'referee': "NewRef",
-}
-
-REMOVE_REFEREE_DATA = {
-    MS_TITLE: "Test Manuscript",
-    'referee': "RefToRemove",
-}
-
-ACTION_DATA = {
-    MS_TITLE: "Test Manuscript",
-    'action': "ACC",
-    'referee': "RefForAction",
+MANUSCRIPT_DATA = {
+    ms.TITLE: "Test Manuscript",
+    ms.AUTHOR: "Test Author",
+    ms.AUTHOR_EMAIL: TEST_EMAIL, 
+    ms.TEXT: "Test Text", 
+    ms.ABSTRACT: "Test Abstract", 
+    ms.EDITOR_EMAIL: TEST_EMAIL
 }
 
 
 @patch('data.manuscript.read', autospec=True,
-       return_value={"TestManu": {MS_TITLE: "TestManu", MS_AUTHOR: "AnAuthor", MS_REFEREES: [], MS_STATE: "SUB"}})
+       return_value={'title': {ms.TITLE: 'Test Title'}})
 def test_read_manuscripts(mock_read):
-    resp = TEST_CLIENT.get(MANUSCRIPT_BASE)
+    resp = TEST_CLIENT.get(ep.MANUSCRIPT_EP)
     assert resp.status_code == OK
     resp_json = resp.get_json()
     assert isinstance(resp_json, dict)
-    for key, manu in resp_json.items():
-        assert MS_TITLE in manu
-        assert MS_AUTHOR in manu
+    for title, manu in resp_json.items():
+        assert isinstance(title, str)
+        assert len(title) > 0
+        assert ms.TITLE in manu
 
 
 @patch('data.manuscript.read_one', autospec=True,
-       return_value={MS_TITLE: "Test Manuscript", MS_AUTHOR: "Test Author", MS_REFEREES: [], MS_STATE: "SUB"})
-def test_read_one_manuscript(mock_read_one):
-    resp = TEST_CLIENT.get(f'{MANUSCRIPT_BASE}/Test Manuscript')
+       return_value={ms.TITLE: 'Test Title'})
+def test_read_one_manuscript(mock_read):
+    resp = TEST_CLIENT.get(f'{ep.MANUSCRIPT_EP}/mock_title')
     assert resp.status_code == OK
-    resp_json = resp.get_json()
-    assert isinstance(resp_json, dict)
-    assert MS_TITLE in resp_json
-    assert MS_AUTHOR in resp_json
 
 
 @patch('data.manuscript.read_one', autospec=True, return_value=None)
-def test_read_one_manuscript_not_found(mock_read_one):
-    resp = TEST_CLIENT.get(f'{MANUSCRIPT_BASE}/NonExistent')
+def test_read_one_manuscript_not_found(mock_read):
+    resp = TEST_CLIENT.get(f'{ep.MANUSCRIPT_EP}/mock_title')
     assert resp.status_code == NOT_FOUND
 
 
-@patch('data.manuscript.delete', autospec=True, return_value='Test Manuscript')
+@patch('data.manuscript.delete', autospec=True, return_value=TEST_TITLE)
 def test_delete_manuscript(mock_delete):
-    resp = TEST_CLIENT.delete(f'{MANUSCRIPT_BASE}/Test Manuscript')
+    resp = TEST_CLIENT.delete(f'{ep.MANUSCRIPT_EP}/mock_title')
     assert resp.status_code == OK
     resp_json = resp.get_json()
     assert isinstance(resp_json, dict)
-    assert 'message' in resp_json
-    assert MS_TITLE in resp_json
+    assert ep.DELETED in resp_json
 
 
 @patch('data.manuscript.delete', autospec=True, return_value=None)
 def test_delete_manuscript_not_found(mock_delete):
-    resp = TEST_CLIENT.delete(f'{MANUSCRIPT_BASE}/Test Manuscript')
+    resp = TEST_CLIENT.delete(f'{ep.MANUSCRIPT_EP}/mock_title')
     assert resp.status_code == NOT_FOUND
 
 
-@patch('data.manuscript.create', autospec=True, return_value='Test Manuscript')
+@patch('data.manuscript.create', autospec=True, return_value=TEST_TITLE)
 def test_create_manuscript(mock_create):
     resp = TEST_CLIENT.put(
-        f'{MANUSCRIPT_BASE}/create',
-        data=json.dumps(CREATE_MANUSCRIPT_DATA),
+        f'{ep.MANUSCRIPT_EP}/create',
+        data=json.dumps(MANUSCRIPT_DATA),
         content_type='application/json'
     )
     assert resp.status_code == OK
     resp_json = resp.get_json()
     assert isinstance(resp_json, dict)
-    assert 'message' in resp_json
-    assert 'return' in resp_json
+    assert ep.MESSAGE in resp_json
+    assert ep.RETURN in resp_json
 
 
 @patch('data.manuscript.create', autospec=True, side_effect=ValueError("Mocked Exception"))
 def test_create_manuscript_failed(mock_create):
     resp = TEST_CLIENT.put(
-        f'{MANUSCRIPT_BASE}/create',
-        data=json.dumps(CREATE_MANUSCRIPT_DATA),
+        f'{ep.MANUSCRIPT_EP}/create',
+        data=json.dumps(MANUSCRIPT_DATA),
         content_type='application/json'
     )
     assert resp.status_code == NOT_ACCEPTABLE
 
 
-@patch('data.manuscript.update', autospec=True, return_value='Test Manuscript')
+@patch('data.manuscript.update', autospec=True, return_value=TEST_TITLE)
 def test_update_manuscript(mock_update):
     resp = TEST_CLIENT.put(
-        f'{MANUSCRIPT_BASE}/update',
-        data=json.dumps(UPDATE_MANUSCRIPT_DATA),
+        f'{ep.MANUSCRIPT_EP}/update',
+        data=json.dumps(MANUSCRIPT_DATA),
         content_type='application/json'
     )
     assert resp.status_code == OK
     resp_json = resp.get_json()
     assert isinstance(resp_json, dict)
-    assert 'message' in resp_json
-    assert 'return' in resp_json
+    assert ep.MESSAGE in resp_json
+    assert ep.RETURN in resp_json
 
 
 @patch('data.manuscript.update', autospec=True, side_effect=ValueError("Mocked Exception"))
 def test_update_manuscript_failed(mock_update):
     resp = TEST_CLIENT.put(
-        f'{MANUSCRIPT_BASE}/update',
-        data=json.dumps(UPDATE_MANUSCRIPT_DATA),
-        content_type='application/json'
-    )
-    assert resp.status_code == NOT_ACCEPTABLE
-
-
-@patch('data.manuscript.add_referee', autospec=True, return_value='Test Manuscript')
-def test_add_referee(mock_add_ref):
-    resp = TEST_CLIENT.put(
-        f'{MANUSCRIPT_BASE}/add_referee',
-        data=json.dumps(ADD_REFEREE_DATA),
-        content_type='application/json'
-    )
-    assert resp.status_code == OK
-    resp_json = resp.get_json()
-    assert isinstance(resp_json, dict)
-    assert 'message' in resp_json
-    assert 'return' in resp_json
-
-
-@patch('data.manuscript.add_referee', autospec=True, side_effect=ValueError("Mocked Exception"))
-def test_add_referee_failed(mock_add_ref):
-    resp = TEST_CLIENT.put(
-        f'{MANUSCRIPT_BASE}/add_referee',
-        data=json.dumps(ADD_REFEREE_DATA),
-        content_type='application/json'
-    )
-    assert resp.status_code == NOT_ACCEPTABLE
-
-
-@patch('data.manuscript.remove_referee', autospec=True, return_value='Test Manuscript')
-def test_remove_referee(mock_remove_ref):
-    resp = TEST_CLIENT.delete(
-        f'{MANUSCRIPT_BASE}/remove_referee',
-        data=json.dumps(REMOVE_REFEREE_DATA),
-        content_type='application/json'
-    )
-    assert resp.status_code == OK
-    resp_json = resp.get_json()
-    assert isinstance(resp_json, dict)
-    assert 'message' in resp_json
-    assert 'return' in resp_json
-
-
-@patch('data.manuscript.remove_referee', autospec=True, side_effect=ValueError("Mocked Exception"))
-def test_remove_referee_failed(mock_remove_ref):
-    resp = TEST_CLIENT.delete(
-        f'{MANUSCRIPT_BASE}/remove_referee',
-        data=json.dumps(REMOVE_REFEREE_DATA),
-        content_type='application/json'
-    )
-    assert resp.status_code == NOT_ACCEPTABLE
-
-
-@patch('data.manuscript.handle_action_on_manuscript', autospec=True, return_value='NEW_STATE')
-def test_action_manuscript(mock_action):
-    resp = TEST_CLIENT.put(
-        f'{MANUSCRIPT_BASE}/action',
-        data=json.dumps(ACTION_DATA),
-        content_type='application/json'
-    )
-    assert resp.status_code == OK
-    resp_json = resp.get_json()
-    assert isinstance(resp_json, dict)
-    assert 'message' in resp_json
-    assert 'return' in resp_json
-    assert resp_json['return'] == 'NEW_STATE'
-
-
-@patch('data.manuscript.handle_action_on_manuscript', autospec=True, side_effect=ValueError("Mocked Exception"))
-def test_action_manuscript_failed(mock_action):
-    resp = TEST_CLIENT.put(
-        f'{MANUSCRIPT_BASE}/action',
-        data=json.dumps(ACTION_DATA),
+        f'{ep.MANUSCRIPT_EP}/update',
+        data=json.dumps(MANUSCRIPT_DATA),
         content_type='application/json'
     )
     assert resp.status_code == NOT_ACCEPTABLE

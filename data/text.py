@@ -4,28 +4,15 @@ This module interfaces to our user data.
 
 import data.db_connect as dbc
 
+TEXT_COLLECT = 'texts'
+
 # fields
-TEXT_COLLECT = 'text'
 PAGE_NUMBER = 'pageNumber'
 TITLE = 'title'
 TEXT = 'text'
 
-# HOME_PAGE_NUMBER = 'HomePage'
-# SUBM_PAGE_NUMBER = 'SubmissionsPage'
-
 client = dbc.connect_db()
-# print(f'{client=}')
-
-# text_dict = {
-#     HOME_PAGE_NUMBER: {
-#         TITLE: 'Home Page',
-#         TEXT: 'This is a journal about building API servers.',
-#     },
-#     SUBM_PAGE_NUMBER: {
-#         TITLE: 'Submissions Page',
-#         TEXT: 'All submissions must be original work in Word format.',
-#     },
-# }
+print(f'{client=}')
 
 
 def read():

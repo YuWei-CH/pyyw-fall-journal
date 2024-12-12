@@ -112,6 +112,9 @@ def test_read(temp_person):
     for _id, person in people.items():
         assert isinstance(_id, str)
         assert ppl.NAME in person
+        assert ppl.AFFILIATION in person
+        assert ppl.EMAIL in person
+        assert ppl.ROLES in person
 
 
 def test_read_one(temp_person):

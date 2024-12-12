@@ -55,8 +55,6 @@ def exists(email: str) -> bool:
 
 def is_valid_person(name: str, affiliation: str, email: str,
                     role: str = None, roles: list = None) -> bool:
-    if exists(email):
-        raise ValueError(f'Adding duplicate {email=}')
     if not is_valid_email(email):
         raise ValueError(f'Invalid email: {email}')
     if not name.strip() or not affiliation.strip():
@@ -97,11 +95,10 @@ def delete(email):
 def update(email: str, name: str, affiliation: str):
     if not exists(email):
         raise ValueError(f'Updating non-existent person: {email=}')
-    if not name.strip() or not affiliation.strip():
-        raise ValueError("Name or Affiliation can't be blank. ")
-    dbc.update(PEOPLE_COLLECT, {EMAIL: email},
-               {NAME: name, AFFILIATION: affiliation})
-    return email
+    if is_valid_person(name, affiliation, email):
+        dbc.update(PEOPLE_COLLECT, {EMAIL: email},
+                   {NAME: name, AFFILIATION: affiliation})
+        return email
 
 
 def has_role(person: dict, role: str):

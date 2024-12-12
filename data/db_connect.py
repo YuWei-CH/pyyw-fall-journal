@@ -5,7 +5,7 @@ import pymongo as pm
 LOCAL = "LOCAL"
 CLOUD = "CLOUD"
 
-SE_DB = 'seDB'
+JOURNAL_DB = 'journalDB'
 
 client = None
 
@@ -58,7 +58,7 @@ def convert_mongo_id(doc: dict):
         doc[MONGO_ID] = str(doc[MONGO_ID])
 
 
-def create(collection, doc, db=SE_DB):
+def create(collection, doc, db=JOURNAL_DB):
     """
     Insert a single doc into collection.
     """
@@ -66,7 +66,7 @@ def create(collection, doc, db=SE_DB):
     return client[db][collection].insert_one(doc)
 
 
-def read_one(collection, filt, db=SE_DB):
+def read_one(collection, filt, db=JOURNAL_DB):
     """
     Find with a filter and return on the first doc found.
     Return None if not found.
@@ -76,7 +76,7 @@ def read_one(collection, filt, db=SE_DB):
         return doc
 
 
-def delete(collection: str, filt: dict, db=SE_DB):
+def delete(collection: str, filt: dict, db=JOURNAL_DB):
     """
     Find with a filter and return on the first doc found.
     """
@@ -84,11 +84,11 @@ def delete(collection: str, filt: dict, db=SE_DB):
     return del_result.deleted_count
 
 
-def update(collection, filters, update_dict, db=SE_DB):
+def update(collection, filters, update_dict, db=JOURNAL_DB):
     return client[db][collection].update_one(filters, {'$set': update_dict})
 
 
-def read(collection, db=SE_DB, no_id=True) -> list:
+def read(collection, db=JOURNAL_DB, no_id=True) -> list:
     """
     Returns a list from the db.
     """
@@ -102,7 +102,7 @@ def read(collection, db=SE_DB, no_id=True) -> list:
     return ret
 
 
-def read_dict(collection, key, db=SE_DB, no_id=True) -> dict:
+def read_dict(collection, key, db=JOURNAL_DB, no_id=True) -> dict:
     recs = read(collection, db=db, no_id=no_id)
     recs_as_dict = {}
     for rec in recs:
@@ -110,7 +110,7 @@ def read_dict(collection, key, db=SE_DB, no_id=True) -> dict:
     return recs_as_dict
 
 
-def fetch_all_as_dict(key, collection, db=SE_DB):
+def fetch_all_as_dict(key, collection, db=JOURNAL_DB):
     ret = {}
     for doc in client[db][collection].find():
         del doc[MONGO_ID]
