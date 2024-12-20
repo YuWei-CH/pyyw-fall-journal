@@ -50,7 +50,8 @@ jobs:
       
       - name: Deploy to PythonAnywhere
         run: |
-          ssh -o StrictHostKeyChecking=no -i ${{ secrets.PYTHONANYWHERE_PASSWORD }} ${{ secrets.PYTHONANYWHERE_USERNAME }}@ssh.pythonanywhere.com "
+          sudo apt install sshpass
+          sshpass -p ${{ secrets.PYTHONANYWHERE_PASSWORD }} ssh -o StrictHostKeyChecking=no ${{ secrets.PYTHONANYWHERE_USERNAME }}@ssh.pythonanywhere.com "
           cd /home/${{ secrets.PYTHONANYWHERE_USERNAME }}/pyyw-fall-journal && git pull && source act.sh && pip install -r requirements.txt && touch app.wsgi"
       # - name: Deploy to PythonAnywhere
       #   run: ./deploy.sh
