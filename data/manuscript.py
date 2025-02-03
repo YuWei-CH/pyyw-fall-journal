@@ -88,7 +88,7 @@ def assign_ref(title: str, ref: str, extra=None) -> str:
     manuscripts = read_one(title)
     if not manuscripts:
         raise ValueError(f"Manuscript with title '{title}' not found")
-    if ref == "":
+    if not title.strip():
         raise ValueError("Name of this referee can't be empty")
     referees = manuscripts[REFEREES]
     if ref not in referees:
@@ -100,10 +100,19 @@ def assign_ref(title: str, ref: str, extra=None) -> str:
     return IN_REF_REV
 
 
-def delete_ref(manu: dict, ref: str) -> str:
-    if len(manu[REFEREES]) > 0:
-        manu[REFEREES].remove(ref)
-    if len(manu[REFEREES]) > 0:
+def delete_ref(title: str, ref: str) -> str:
+    manuscripts = read_one(title)
+    if not manuscripts:
+        raise ValueError(f"Manuscript with title '{title}' not found")
+    if not title.strip():
+        raise ValueError("Name of this referee can't be empty")
+    referees = manuscripts[REFEREES]
+    if ref not in referees:
+        raise ValueError(f"This referee '{ref}' is not reviewing the journal")
+    referees.remove(ref)
+    dbc.update(MANUSCRIPTS_COLLECT, {TITLE: title},
+               {REFEREES: referees})
+    if len(referees) > 0:
         return IN_REF_REV
     else:
         return SUBMITTED
