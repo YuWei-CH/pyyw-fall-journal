@@ -279,3 +279,39 @@ def test_delete_not_existed_ref(temp_manuscript):
 def test_delete_referee_to_non_existent_manuscript():
     with pytest.raises(ValueError):
         ms.delete_ref("Non-Existent Manuscript", TEST_REFEREE)
+
+
+
+def test_update_state_valid_action(temp_manuscript):
+    """Test updating manuscript state with a valid action."""
+    initial_state = ms.read_one(temp_manuscript)[ms.STATE]
+    assert initial_state == ms.SUBMITTED  # Manuscripts start in the SUBMITTED state
+    # Assign a referee (should transition to IN_REF_REV)
+    new_state = ms.update_state(temp_manuscript, ms.ASSIGN_REF, ref=TEST_REFEREE)
+    assert new_state == ms.IN_REF_REV
+    # Check the database state is updated
+    updated_manuscript = ms.read_one(temp_manuscript)
+    assert updated_manuscript[ms.STATE] == ms.IN_REF_REV
+    assert TEST_REFEREE in updated_manuscript[ms.REFEREES]
+
+
+def test_update_state_invalid_action(temp_manuscript):
+    """Test updating manuscript state with an invalid action."""
+    with pytest.raises(ValueError):
+        ms.update_state(temp_manuscript, "INVALID_ACTION")
+
+
+def test_update_state_invalid_transition(temp_manuscript):
+    """Test attempting an action that isn't allowed in the current state."""
+    with pytest.raises(ValueError):
+        ms.update_state(temp_manuscript, ms.ACCEPT)
+
+
+def test_update_state_history_tracking(temp_manuscript):
+    """Test that the history field updates correctly when state changes."""
+    initial_manuscript = ms.read_one(temp_manuscript)
+    initial_history = initial_manuscript[ms.HISTORY]
+    ms.update_state(temp_manuscript, ms.ASSIGN_REF, ref=TEST_REFEREE)
+    updated_manuscript = ms.read_one(temp_manuscript)
+    assert ms.IN_REF_REV in updated_manuscript[ms.HISTORY]
+    assert len(updated_manuscript[ms.HISTORY]) == len(initial_history) + 1
