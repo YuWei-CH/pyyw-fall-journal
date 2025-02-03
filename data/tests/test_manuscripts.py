@@ -263,7 +263,13 @@ def test_delete_ref(temp_manuscript):
     ms.assign_ref(temp_manuscript, TEST_REFEREE)
     status = ms.delete_ref(temp_manuscript, TEST_REFEREE)
     assert status == 'SUB'
+    updated_manuscript = ms.read_one(temp_manuscript)
+    assert TEST_REFEREE not in updated_manuscript[ms.REFEREES]
 
 def test_delete_not_existed_ref(temp_manuscript):
     with pytest.raises(ValueError):
         ms.delete_ref(temp_manuscript, "RANDOM GUY")
+
+def test_delete_referee_to_non_existent_manuscript():
+    with pytest.raises(ValueError):
+        ms.delete_ref("Non-Existent Manuscript", TEST_REFEREE)

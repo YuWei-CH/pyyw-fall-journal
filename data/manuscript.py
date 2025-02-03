@@ -88,7 +88,7 @@ def assign_ref(title: str, ref: str, extra=None) -> str:
     manuscripts = read_one(title)
     if not manuscripts:
         raise ValueError(f"Manuscript with title '{title}' not found")
-    if not title.strip():
+    if not ref.strip():
         raise ValueError("Name of this referee can't be empty")
     referees = manuscripts[REFEREES]
     if ref not in referees:
@@ -104,7 +104,7 @@ def delete_ref(title: str, ref: str) -> str:
     manuscripts = read_one(title)
     if not manuscripts:
         raise ValueError(f"Manuscript with title '{title}' not found")
-    if not title.strip():
+    if not ref.strip():
         raise ValueError("Name of this referee can't be empty")
     referees = manuscripts[REFEREES]
     if ref not in referees:
