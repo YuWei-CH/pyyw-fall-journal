@@ -301,6 +301,32 @@ def update(title: str, author: str, author_email: str,
         return title
 
 
+def update_state(title: str, action: str, **kwargs):
+    """
+    Updates the state of a manuscript based on the given action.
+    :param title: The title of the manuscript to update.
+    :param action: The action to perform (e.g., ACCEPT, REJECT, ASSIGN_REF).
+    :param kwargs: Additional arguments required by specific actions.
+    :return: The updated state of the manuscript.
+    """
+    manuscript = read_one(title)
+    current_state = manuscript[STATE]
+    # Determine the new state using handle_action
+    new_state = handle_action(
+        current_state, action, title=title, **kwargs
+    )
+    # Update the manuscript state and history in the database
+    dbc.update(
+        MANUSCRIPTS_COLLECT,
+        {TITLE: title},
+        {
+            STATE: new_state,
+            HISTORY: manuscript[HISTORY] + [new_state],
+        },
+    )
+    return new_state
+
+
 def main():
     pass
 

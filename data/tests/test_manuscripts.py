@@ -245,19 +245,23 @@ def test_update(temp_manuscript):
     assert updated_abstract == TEST_ABSTRACT
     assert updated_editor_email == TEST_EDITOR_EMAIL
 
+
 def test_assign_ref(temp_manuscript):
     ms.assign_ref(temp_manuscript, TEST_REFEREE)
     updated_manuscript = ms.read_one(temp_manuscript)
     assert TEST_REFEREE in updated_manuscript[ms.REFEREES]
 
+
 def test_assign_referee_to_non_existent_manuscript():
     with pytest.raises(ValueError):
         ms.assign_ref("Non-Existent Manuscript", TEST_REFEREE)
+
 
 def test_assign_existed_referee(temp_manuscript):
     ms.assign_ref(temp_manuscript, "Duplicate_ref")
     with pytest.raises(ValueError):
         ms.assign_ref(temp_manuscript, "Duplicate_ref")
+
 
 def test_delete_ref(temp_manuscript):
     ms.assign_ref(temp_manuscript, TEST_REFEREE)
@@ -266,9 +270,11 @@ def test_delete_ref(temp_manuscript):
     updated_manuscript = ms.read_one(temp_manuscript)
     assert TEST_REFEREE not in updated_manuscript[ms.REFEREES]
 
+
 def test_delete_not_existed_ref(temp_manuscript):
     with pytest.raises(ValueError):
         ms.delete_ref(temp_manuscript, "RANDOM GUY")
+
 
 def test_delete_referee_to_non_existent_manuscript():
     with pytest.raises(ValueError):
