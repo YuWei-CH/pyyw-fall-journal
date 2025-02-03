@@ -83,9 +83,20 @@ def is_valid_action(action: str) -> bool:
     return action in VALID_ACTIONS
 
 
-def assign_ref(manu: dict, ref: str, extra=None) -> str:
+def assign_ref(title: str, ref: str, extra=None) -> str:
     print(extra)
-    manu[REFEREES].append(ref)
+    manuscripts = read_one(title)
+    if not manuscripts:
+        raise ValueError(f"Manuscript with title '{title}' not found")
+    if ref == "":
+        raise ValueError("Name of this referee can't be empty")
+    referees = manuscripts[REFEREES]
+    if ref not in referees:
+        referees.append(ref)
+    else:
+        raise ValueError(f"Referee '{ref}' is already assigned to '{title}'.")
+    dbc.update(MANUSCRIPTS_COLLECT, {TITLE: title},
+               {REFEREES: referees})
     return IN_REF_REV
 
 

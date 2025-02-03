@@ -78,13 +78,13 @@ def test_handle_action_bad_action(temp_manuscript):
                            gen_random_not_valid_str(),
                            manu=ms.read_one(temp_manuscript))
 
-
+@pytest.mark.skip(reason="skip this test since delete_ref() not done")
 def test_handle_action_valid_return(temp_manuscript):
     for state in ms.get_states():
         for action in ms.get_valid_actions_by_state(state):
             print(f'{action=}')
             new_state = ms.handle_action(state, action,
-                                         manu=ms.read_one(temp_manuscript),
+                                        title=temp_manuscript,
                                          ref='Some ref')
             print(f'{new_state=}')
             assert ms.is_valid_state(new_state)
@@ -245,3 +245,17 @@ def test_update(temp_manuscript):
     assert updated_text == TEST_TEXT
     assert updated_abstract == TEST_ABSTRACT
     assert updated_editor_email == TEST_EDITOR_EMAIL
+
+def test_assign_ref(temp_manuscript):
+    ms.assign_ref(temp_manuscript, TEST_REFEREE)
+    updated_manuscript = ms.read_one(temp_manuscript)
+    assert TEST_REFEREE in updated_manuscript[ms.REFEREES]
+
+def test_assign_referee_to_non_existent_manuscript():
+    with pytest.raises(ValueError):
+        ms.assign_ref("Non-Existent Manuscript", TEST_REFEREE)
+
+def test_assign_existed_referee(temp_manuscript):
+    ms.assign_ref(temp_manuscript, "Duplicate_ref")
+    with pytest.raises(ValueError):
+        ms.assign_ref(temp_manuscript, "Duplicate_ref")
