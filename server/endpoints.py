@@ -46,6 +46,10 @@ ROLE = 'role'
 
 MANUSCRIPT_EP = '/manuscript'
 
+ACTION = 'action'
+
+REFEREE = 'referee'
+
 
 @api.route(HELLO_EP)
 class HelloWorld(Resource):
@@ -474,5 +478,37 @@ class ManuscriptUpdate(Resource):
                                    f'{err=}')
         return {
             MESSAGE: f'{title} updated!',
+            RETURN: ret,
+        }
+
+
+MANUSCRIPT_UPDATE_STATE_FLDS = api.model('ManuscriptUpdateStateEntry', {
+    ms.TITLE: fields.String,
+    ACTION: fields.String,
+})
+
+
+@api.route(f'{MANUSCRIPT_EP}/update_state')
+class ManuscriptUpdateState(Resource):
+    """
+    This class handles the update of a manuscript's state,
+    """
+    @api.response(HTTPStatus.OK, 'Success.')
+    @api.response(HTTPStatus.NOT_FOUND, 'No such manuscript.')
+    @api.response(HTTPStatus.NOT_ACCEPTABLE, 'Invalid action.')
+    @api.expect(MANUSCRIPT_UPDATE_STATE_FLDS)
+    def put(self):
+        """
+        Perform an action on the manuscript's state machine.
+        """
+        try:
+            title = request.json.get(ms.TITLE)
+            action = request.json.get(ACTION)
+            ret = ms.update_state(title, action)
+        except Exception as err:
+            raise wz.NotAcceptable(f'Could not update manuscript state: '
+                                   f'{err=}')
+        return {
+            MESSAGE: f'{title} State updated!',
             RETURN: ret,
         }
