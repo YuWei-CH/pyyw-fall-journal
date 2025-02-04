@@ -404,3 +404,34 @@ def test_update_manuscript_failed(mock_update):
         content_type='application/json'
     )
     assert resp.status_code == NOT_ACCEPTABLE
+
+
+STATE_TEST_DATA = {
+    ms.TITLE: "Test Manuscript",
+    ep.ACTION: ms.ACCEPT
+}
+
+
+@patch('data.manuscript.update_state', autospec=True,
+       return_value={ms.TITLE: 'Test Title'})
+def test_update_state(mock_update_state):
+    resp = TEST_CLIENT.put(
+        f'{ep.MANUSCRIPT_EP}/update_state',
+        data=json.dumps(STATE_TEST_DATA),
+        content_type='application/json'
+    )
+    assert resp.status_code == OK
+    resp_json = resp.get_json()
+    assert isinstance(resp_json, dict)
+    assert ep.MESSAGE in resp_json
+    assert ep.RETURN in resp_json
+
+
+@patch('data.manuscript.update_state', autospec=True, side_effect=ValueError("Mocked Exception"))
+def test_update_state_invalid_action(mock_update_state):
+    resp = TEST_CLIENT.put(
+        f'{ep.MANUSCRIPT_EP}/update_state',
+        data=json.dumps(STATE_TEST_DATA),
+        content_type='application/json'
+    )
+    assert resp.status_code == NOT_ACCEPTABLE
