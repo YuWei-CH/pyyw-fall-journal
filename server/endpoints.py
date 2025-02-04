@@ -47,7 +47,6 @@ ROLE = 'role'
 MANUSCRIPT_EP = '/manuscript'
 
 ACTION = 'action'
-
 REFEREE = 'referee'
 
 
@@ -485,6 +484,7 @@ class ManuscriptUpdate(Resource):
 MANUSCRIPT_UPDATE_STATE_FLDS = api.model('ManuscriptUpdateStateEntry', {
     ms.TITLE: fields.String,
     ACTION: fields.String,
+    REFEREE: fields.String(required=False),
 })
 
 
@@ -494,8 +494,7 @@ class ManuscriptUpdateState(Resource):
     This class handles the update of a manuscript's state,
     """
     @api.response(HTTPStatus.OK, 'Success.')
-    @api.response(HTTPStatus.NOT_FOUND, 'No such manuscript.')
-    @api.response(HTTPStatus.NOT_ACCEPTABLE, 'Invalid action.')
+    @api.response(HTTPStatus.NOT_ACCEPTABLE, 'Not acceptable. ')
     @api.expect(MANUSCRIPT_UPDATE_STATE_FLDS)
     def put(self):
         """
@@ -504,11 +503,15 @@ class ManuscriptUpdateState(Resource):
         try:
             title = request.json.get(ms.TITLE)
             action = request.json.get(ACTION)
-            ret = ms.update_state(title, action)
+            ref = request.json.get(REFEREE)
+            if action == ms.ASSIGN_REF or action == ms.DELETE_REF:
+                ret = ms.update_state(title, action, ref=ref)
+            else:
+                ret = ms.update_state(title, action)
         except Exception as err:
             raise wz.NotAcceptable(f'Could not update manuscript state: '
                                    f'{err=}')
         return {
-            MESSAGE: f'{title} State updated!',
+            MESSAGE: f'{title} state updated!',
             RETURN: ret,
         }

@@ -324,7 +324,7 @@ def update_state(title: str, action: str, **kwargs):
             HISTORY: manuscript[HISTORY] + [new_state],
         },
     )
-    return new_state
+    return title
 
 
 def main():

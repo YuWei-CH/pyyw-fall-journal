@@ -281,13 +281,13 @@ def test_delete_referee_to_non_existent_manuscript():
         ms.delete_ref("Non-Existent Manuscript", TEST_REFEREE)
 
 
-
 def test_update_state_valid_action(temp_manuscript):
     """Test updating manuscript state with a valid action."""
     initial_state = ms.read_one(temp_manuscript)[ms.STATE]
     assert initial_state == ms.SUBMITTED  # Manuscripts start in the SUBMITTED state
     # Assign a referee (should transition to IN_REF_REV)
-    new_state = ms.update_state(temp_manuscript, ms.ASSIGN_REF, ref=TEST_REFEREE)
+    ms.update_state(temp_manuscript, ms.ASSIGN_REF, ref=TEST_REFEREE)
+    new_state = ms.read_one(temp_manuscript)[ms.STATE]
     assert new_state == ms.IN_REF_REV
     # Check the database state is updated
     updated_manuscript = ms.read_one(temp_manuscript)

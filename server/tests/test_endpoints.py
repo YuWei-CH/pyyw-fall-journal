@@ -412,12 +412,32 @@ STATE_TEST_DATA = {
 }
 
 
-@patch('data.manuscript.update_state', autospec=True,
-       return_value={ms.TITLE: 'Test Title'})
+@patch('data.manuscript.update_state', autospec=True, return_value=TEST_TITLE)
 def test_update_state(mock_update_state):
     resp = TEST_CLIENT.put(
         f'{ep.MANUSCRIPT_EP}/update_state',
         data=json.dumps(STATE_TEST_DATA),
+        content_type='application/json'
+    )
+    assert resp.status_code == OK
+    resp_json = resp.get_json()
+    assert isinstance(resp_json, dict)
+    assert ep.MESSAGE in resp_json
+    assert ep.RETURN in resp_json
+
+
+STATE_TEST_DATA_WITH_REFEREE = {
+    ms.TITLE: "Test Manuscript",
+    ep.ACTION: ms.ASSIGN_REF, 
+    ep.REFEREE: "Test Referee",
+}
+
+
+@patch('data.manuscript.update_state', autospec=True, return_value=TEST_TITLE)
+def test_update_state_with_referee(mock_update_state):
+    resp = TEST_CLIENT.put(
+        f'{ep.MANUSCRIPT_EP}/update_state',
+        data=json.dumps(STATE_TEST_DATA_WITH_REFEREE),
         content_type='application/json'
     )
     assert resp.status_code == OK
