@@ -1,6 +1,6 @@
 import pytest
 import security.db_connect as dbc
-from auth import register_user, authenticate_user
+from security.auth import register_user, authenticate_user
 
 SECURITY_DB = 'securityDB'
 USER_COLLECTION = 'users'
