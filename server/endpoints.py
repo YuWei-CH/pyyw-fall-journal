@@ -13,6 +13,7 @@ import werkzeug.exceptions as wz
 import data.people as ppl
 import data.text as txt
 import data.manuscript as ms
+import security.auth as auth
 
 app = Flask(__name__)
 CORS(app)
@@ -48,6 +49,13 @@ MANUSCRIPT_EP = '/manuscript'
 
 ACTION = 'action'
 REFEREE = 'referee'
+
+AUTH_EP = '/auth'
+
+AUTH_FIELDS = api.model('AuthFields', {
+    'username': fields.String(required=True),
+    'password': fields.String(required=True),
+})
 
 
 @api.route(HELLO_EP)
@@ -515,3 +523,53 @@ class ManuscriptUpdateState(Resource):
             MESSAGE: f'{title} state updated!',
             RETURN: ret,
         }
+
+
+@api.route(f'{AUTH_EP}/register')
+class Register(Resource):
+    """
+    This class handles user registration.
+    """
+    @api.response(HTTPStatus.CREATED, 'User registered successfully.')
+    @api.response(
+        HTTPStatus.CONFLICT,
+        'Username already exists.'
+    )
+    @api.expect(AUTH_FIELDS)
+    def post(self):
+        """
+        Register a new user.
+        """
+        data = request.get_json()
+        success = auth.register_user(data['username'], data['password'])
+        if success:
+            return {
+                'message': 'User registered successfully'
+            }, HTTPStatus.CREATED
+        else:
+            return {
+                'error': 'Username already exists'
+            }, HTTPStatus.CONFLICT
+
+
+@api.route(f'{AUTH_EP}/login')
+class Login(Resource):
+    """
+    This class handles user authentication.
+    """
+    @api.response(HTTPStatus.OK, 'Login successful.')
+    @api.response(HTTPStatus.UNAUTHORIZED, 'Invalid credentials.')
+    @api.expect(AUTH_FIELDS)
+    def post(self):
+        """
+        Authenticate a user.
+        """
+        data = request.get_json()
+        success = auth.authenticate_user(
+            data['username'],
+            data['password']
+        )
+        if success:
+            return {'message': 'Login successful'}, HTTPStatus.OK
+        else:
+            return {'error': 'Invalid credentials'}, HTTPStatus.UNAUTHORIZED
