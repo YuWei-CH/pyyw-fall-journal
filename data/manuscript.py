@@ -268,8 +268,8 @@ def is_valid_manuscript(title: str, author: str,
                                        {TITLE: title,
                                         AUTHOR_EMAIL: author_email})
     if existing_manuscript:
-        raise ValueError(f"A manuscript with title '{title}' and ",
-                         "author email '{author_email}' already exists.")
+        raise ValueError(f"A manuscript with title '{title}' and "
+                         f"author email '{author_email}' already exists.")
     return True
 
 
