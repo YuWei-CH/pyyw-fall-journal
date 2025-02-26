@@ -264,6 +264,12 @@ def is_valid_manuscript(title: str, author: str,
         raise ValueError("Text cannot be blank")
     if not abstract.strip():
         raise ValueError("Abstract cannot be blank")
+    existing_manuscript = dbc.read_one("manuscripts",
+                                       {TITLE: title,
+                                        AUTHOR_EMAIL: author_email})
+    if existing_manuscript:
+        raise ValueError(f"A manuscript with title '{title}' and ",
+                         "author email '{author_email}' already exists.")
     return True
 
 

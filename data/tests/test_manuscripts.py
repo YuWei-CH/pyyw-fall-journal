@@ -133,6 +133,12 @@ def test_create_bad_editor_email():
                   GOOD_EMAIL, "or text", "or abstract", BAD_EMAIL)
 
 
+def test_create_duplicate_manuscript(temp_manuscript):
+    with pytest.raises(ValueError):
+        ms.create(TEMP_TITLE, "Do not care about author", TEMP_AUTHOR_EMAIL,
+                  "or text", "or abstract", GOOD_EMAIL)
+
+
 def test_exists(temp_manuscript):
     assert ms.exists(temp_manuscript)
 
