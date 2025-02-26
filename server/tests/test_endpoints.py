@@ -22,6 +22,7 @@ import data.roles as rls
 from data.text import *
 import data.manuscript as ms
 
+TEST_MANU_ID = "test_manu_id"
 TEST_EMAIL = "testEmail@gmail.com"
 TEST_TITLE = "Test Manuscript Title"
 TEST_PAGE_NUMBER = "TestPageNumber"
@@ -333,19 +334,19 @@ def test_read_manuscripts(mock_read):
 @patch('data.manuscript.read_one', autospec=True,
        return_value={ms.TITLE: 'Test Title'})
 def test_read_one_manuscript(mock_read):
-    resp = TEST_CLIENT.get(f'{ep.MANUSCRIPT_EP}/mock_title')
+    resp = TEST_CLIENT.get(f'{ep.MANUSCRIPT_EP}/mock_manu_id')
     assert resp.status_code == OK
 
 
 @patch('data.manuscript.read_one', autospec=True, return_value=None)
 def test_read_one_manuscript_not_found(mock_read):
-    resp = TEST_CLIENT.get(f'{ep.MANUSCRIPT_EP}/mock_title')
+    resp = TEST_CLIENT.get(f'{ep.MANUSCRIPT_EP}/mock_manu_id')
     assert resp.status_code == NOT_FOUND
 
 
-@patch('data.manuscript.delete', autospec=True, return_value=TEST_TITLE)
+@patch('data.manuscript.delete', autospec=True, return_value=TEST_MANU_ID)
 def test_delete_manuscript(mock_delete):
-    resp = TEST_CLIENT.delete(f'{ep.MANUSCRIPT_EP}/mock_title')
+    resp = TEST_CLIENT.delete(f'{ep.MANUSCRIPT_EP}/mock_manu_id')
     assert resp.status_code == OK
     resp_json = resp.get_json()
     assert isinstance(resp_json, dict)
@@ -354,11 +355,11 @@ def test_delete_manuscript(mock_delete):
 
 @patch('data.manuscript.delete', autospec=True, return_value=None)
 def test_delete_manuscript_not_found(mock_delete):
-    resp = TEST_CLIENT.delete(f'{ep.MANUSCRIPT_EP}/mock_title')
+    resp = TEST_CLIENT.delete(f'{ep.MANUSCRIPT_EP}/mock_manu_id')
     assert resp.status_code == NOT_FOUND
 
 
-@patch('data.manuscript.create', autospec=True, return_value=TEST_TITLE)
+@patch('data.manuscript.create', autospec=True, return_value=TEST_MANU_ID)
 def test_create_manuscript(mock_create):
     resp = TEST_CLIENT.put(
         f'{ep.MANUSCRIPT_EP}/create',
@@ -382,7 +383,7 @@ def test_create_manuscript_failed(mock_create):
     assert resp.status_code == NOT_ACCEPTABLE
 
 
-@patch('data.manuscript.update', autospec=True, return_value=TEST_TITLE)
+@patch('data.manuscript.update', autospec=True, return_value=TEST_MANU_ID)
 def test_update_manuscript(mock_update):
     resp = TEST_CLIENT.put(
         f'{ep.MANUSCRIPT_EP}/update',
@@ -407,12 +408,12 @@ def test_update_manuscript_failed(mock_update):
 
 
 STATE_TEST_DATA = {
-    ms.TITLE: "Test Manuscript",
+    ms.MANU_ID: TEST_MANU_ID,
     ep.ACTION: ms.ACCEPT
 }
 
 
-@patch('data.manuscript.update_state', autospec=True, return_value=TEST_TITLE)
+@patch('data.manuscript.update_state', autospec=True, return_value=TEST_MANU_ID)
 def test_update_state(mock_update_state):
     resp = TEST_CLIENT.put(
         f'{ep.MANUSCRIPT_EP}/update_state',
@@ -427,13 +428,13 @@ def test_update_state(mock_update_state):
 
 
 STATE_TEST_DATA_WITH_REFEREE = {
-    ms.TITLE: "Test Manuscript",
+    ms.MANU_ID: TEST_MANU_ID,
     ep.ACTION: ms.ASSIGN_REF, 
     ep.REFEREE: "Test Referee",
 }
 
 
-@patch('data.manuscript.update_state', autospec=True, return_value=TEST_TITLE)
+@patch('data.manuscript.update_state', autospec=True, return_value=TEST_MANU_ID)
 def test_update_state_with_referee(mock_update_state):
     resp = TEST_CLIENT.put(
         f'{ep.MANUSCRIPT_EP}/update_state',

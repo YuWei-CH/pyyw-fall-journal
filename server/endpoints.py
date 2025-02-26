@@ -391,32 +391,32 @@ class Manuscripts(Resource):
         return ms.read()
 
 
-@api.route(f'{MANUSCRIPT_EP}/<title>')
+@api.route(f'{MANUSCRIPT_EP}/<manu_id>')
 class Manuscript(Resource):
     """
     This class handles reading and deleting a manuscript.
     """
-    def get(self, title):
+    def get(self, manu_id):
         """
-        Retrieve a single manuscript by title.
+        Retrieve a single manuscript by _id.
         """
-        manu = ms.read_one(title)
+        manu = ms.read_one(manu_id)
         if manu:
             return manu
         else:
-            raise wz.NotFound(f'No such manuscript: {title}')
+            raise wz.NotFound(f'No such manuscript with _id: {manu_id}')
 
     @api.response(HTTPStatus.OK, 'Success.')
     @api.response(HTTPStatus.NOT_FOUND, 'No such manuscript.')
-    def delete(self, title):
+    def delete(self, manu_id):
         """
-        Delete a manuscript by title.
+        Delete a manuscript by _id.
         """
-        ret = ms.delete(title)
+        ret = ms.delete(manu_id)
         if ret is not None:
             return {DELETED: ret}
         else:
-            raise wz.NotFound(f'No such manuscript: {title}')
+            raise wz.NotFound(f'No such manuscript with _id: {manu_id}')
 
 
 MANUSCRIPT_FLDS = api.model('ManuscriptEntry', {
@@ -459,6 +459,17 @@ class ManuscriptCreate(Resource):
         }
 
 
+MANUSCRIPT_UPDATE_FLDS = api.model('ManuscriptUpdateEntry', {
+    ms.MANU_ID: fields.String,
+    ms.TITLE: fields.String,
+    ms.AUTHOR: fields.String,
+    ms.AUTHOR_EMAIL: fields.String,
+    ms.TEXT: fields.String,
+    ms.ABSTRACT: fields.String,
+    ms.EDITOR_EMAIL: fields.String,
+})
+
+
 @api.route(f'{MANUSCRIPT_EP}/update')
 class ManuscriptUpdate(Resource):
     """
@@ -466,31 +477,32 @@ class ManuscriptUpdate(Resource):
     """
     @api.response(HTTPStatus.OK, 'Success.')
     @api.response(HTTPStatus.NOT_ACCEPTABLE, 'Not acceptable.')
-    @api.expect(MANUSCRIPT_FLDS)
+    @api.expect(MANUSCRIPT_UPDATE_FLDS)
     def put(self):
         """
         Update manuscript information.
         """
         try:
+            manu_id = request.json.get(ms.MANU_ID)
             title = request.json.get(ms.TITLE)
             author = request.json.get(ms.AUTHOR)
             author_email = request.json.get(ms.AUTHOR_EMAIL)
             text = request.json.get(ms.TEXT)
             abstract = request.json.get(ms.ABSTRACT)
             editor_email = request.json.get(ms.EDITOR_EMAIL)
-            ret = ms.update(title, author, author_email,
+            ret = ms.update(manu_id, title, author, author_email,
                             text, abstract, editor_email)
         except Exception as err:
             raise wz.NotAcceptable(f'Could not update manuscript: '
                                    f'{err=}')
         return {
-            MESSAGE: f'{title} updated!',
+            MESSAGE: f'{manu_id} updated!',
             RETURN: ret,
         }
 
 
 MANUSCRIPT_UPDATE_STATE_FLDS = api.model('ManuscriptUpdateStateEntry', {
-    ms.TITLE: fields.String,
+    ms.MANU_ID: fields.String,
     ACTION: fields.String,
     REFEREE: fields.String(required=False),
 })
@@ -499,7 +511,7 @@ MANUSCRIPT_UPDATE_STATE_FLDS = api.model('ManuscriptUpdateStateEntry', {
 @api.route(f'{MANUSCRIPT_EP}/update_state')
 class ManuscriptUpdateState(Resource):
     """
-    This class handles the update of a manuscript's state,
+    This class handles the update of a manuscript's state.
     """
     @api.response(HTTPStatus.OK, 'Success.')
     @api.response(HTTPStatus.NOT_ACCEPTABLE, 'Not acceptable. ')
@@ -509,18 +521,18 @@ class ManuscriptUpdateState(Resource):
         Perform an action on the manuscript's state machine.
         """
         try:
-            title = request.json.get(ms.TITLE)
+            manu_id = request.json.get(ms.MANU_ID)
             action = request.json.get(ACTION)
             ref = request.json.get(REFEREE)
             if action == ms.ASSIGN_REF or action == ms.DELETE_REF:
-                ret = ms.update_state(title, action, ref=ref)
+                ret = ms.update_state(manu_id, action, ref=ref)
             else:
-                ret = ms.update_state(title, action)
+                ret = ms.update_state(manu_id, action)
         except Exception as err:
             raise wz.NotAcceptable(f'Could not update manuscript state: '
                                    f'{err=}')
         return {
-            MESSAGE: f'{title} state updated!',
+            MESSAGE: f'{manu_id} state updated!',
             RETURN: ret,
         }
 
