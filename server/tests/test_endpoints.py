@@ -44,6 +44,20 @@ def test_title():
     assert len(resp_json[ep.TITLE_RESP]) > 0
 
 
+@patch('data.roles.read', autospec=True,
+        return_value={'ED': 'Editor'})
+def test_read_roles(mock_read):
+    resp = TEST_CLIENT.get(ep.ROLES_EP)
+    assert resp.status_code == OK
+    resp_json = resp.get_json()
+    assert isinstance(resp_json, dict)
+    for role_code, role_name in resp_json.items():
+        assert isinstance(role_code, str)
+        assert isinstance(role_name, str)
+        assert len(role_code) > 0
+        assert len(role_name) > 0
+
+
 @patch('data.people.read', autospec=True,
         return_value={'id': {NAME: 'Joe Schmoe'}})
 def test_read_people(mock_read):
