@@ -29,8 +29,12 @@ ROLES = {
 MH_ROLES = [ED_CODE, ME_CODE, CE_CODE]
 
 
-def get_roles() -> dict:
+def read() -> dict:
     return deepcopy(ROLES)
+
+
+def get_roles() -> dict:
+    return read()
 
 
 def is_valid(code: str) -> bool:

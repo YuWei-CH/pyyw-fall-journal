@@ -11,6 +11,7 @@ from flask_cors import CORS
 import werkzeug.exceptions as wz
 
 import data.people as ppl
+import data.roles as rls
 import data.text as txt
 import data.manuscript as ms
 import security.auth as auth
@@ -43,6 +44,7 @@ DELETED = 'Deleted'
 
 TEXT_EP = '/text'
 
+ROLES_EP = '/roles'
 ROLE = 'role'
 
 MANUSCRIPT_EP = '/manuscript'
@@ -99,6 +101,18 @@ class JournalTitle(Resource):
                 EDITOR_RESP: EDITOR,
                 DATE_RESP: DATE,
                 PUBLISHER_RESP: PUBLISHER}
+
+
+@api.route(ROLES_EP)
+class Roles(Resource):
+    """
+    This class handles reading person roles.
+    """
+    def get(self):
+        """
+        Retrieve the journal person roles.
+        """
+        return rls.read()
 
 
 @api.route(PEOPLE_EP)
