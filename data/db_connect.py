@@ -85,7 +85,27 @@ def delete(collection: str, filt: dict, db=JOURNAL_DB):
 
 
 def update(collection, filters, update_dict, db=JOURNAL_DB):
-    return client[db][collection].update_one(filters, {'$set': update_dict})
+    """
+    Update a document in the database.
+    
+    Args:
+        collection: The collection to update
+        filters: The filter to find the document to update
+        update_dict: The fields to update
+        db: The database to use
+        
+    Returns:
+        The UpdateResult object
+    """
+    print(f"Updating document in {collection} with filters: {filters}")
+    print(f"Update fields: {update_dict}")
+    try:
+        result = client[db][collection].update_one(filters, {'$set': update_dict})
+        print(f"Update result: matched={result.matched_count}, modified={result.modified_count}")
+        return result
+    except Exception as e:
+        print(f"Error updating document: {str(e)}")
+        raise
 
 
 def read(collection, db=JOURNAL_DB, no_id=True) -> list:
@@ -116,3 +136,43 @@ def fetch_all_as_dict(key, collection, db=JOURNAL_DB):
         del doc[MONGO_ID]
         ret[doc[key]] = doc
     return ret
+
+
+def read_many(collection, filt, db=JOURNAL_DB, no_id=False) -> list:
+    """
+    Find documents with a filter and return them as a list.
+    
+    Args:
+        collection: The collection to query
+        filt: The filter to apply
+        db: The database to use
+        no_id: Whether to remove the _id field
+        
+    Returns:
+        A list of documents matching the filter
+    """
+    ret = []
+    for doc in client[db][collection].find(filt):
+        if no_id:
+            if MONGO_ID in doc:
+                del doc[MONGO_ID]
+        else:
+            convert_mongo_id(doc)
+        ret.append(doc)
+    return ret
+
+
+def delete_many(collection: str, filt: dict, db=JOURNAL_DB):
+    """
+    Delete multiple documents matching a filter.
+    
+    Args:
+        collection: The collection to delete from
+        filt: The filter to apply
+        db: The database to use
+        
+    Returns:
+        The DeleteResult object with the deleted_count property
+    """
+    del_result = client[db][collection].delete_many(filt)
+    return del_result

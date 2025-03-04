@@ -437,7 +437,7 @@ MANUSCRIPT_FLDS = api.model('ManuscriptEntry', {
     ms.TITLE: fields.String,
     ms.AUTHOR: fields.String,
     ms.AUTHOR_EMAIL: fields.String,
-    ms.TEXT: fields.String,
+    ms.TEXT: fields.String,  # Keep this for backward compatibility with frontend
     ms.ABSTRACT: fields.String,
     ms.EDITOR_EMAIL: fields.String,
 })
@@ -459,7 +459,7 @@ class ManuscriptCreate(Resource):
             title = request.json.get(ms.TITLE)
             author = request.json.get(ms.AUTHOR)
             author_email = request.json.get(ms.AUTHOR_EMAIL)
-            text = request.json.get(ms.TEXT)
+            text = request.json.get(ms.TEXT)  # We'll still get this from the request
             abstract = request.json.get(ms.ABSTRACT)
             editor_email = request.json.get(ms.EDITOR_EMAIL)
             ret = ms.create(title, author, author_email,
@@ -478,7 +478,7 @@ MANUSCRIPT_UPDATE_FLDS = api.model('ManuscriptUpdateEntry', {
     ms.TITLE: fields.String,
     ms.AUTHOR: fields.String,
     ms.AUTHOR_EMAIL: fields.String,
-    ms.TEXT: fields.String,
+    ms.TEXT: fields.String,  # Keep this for backward compatibility with frontend
     ms.ABSTRACT: fields.String,
     ms.EDITOR_EMAIL: fields.String,
 })
@@ -498,12 +498,19 @@ class ManuscriptUpdate(Resource):
         """
         try:
             manu_id = request.json.get(ms.MANU_ID)
+            
+            # Validate manuscript ID
+            if not manu_id:
+                raise ValueError('Manuscript ID is required for update')
+                
             title = request.json.get(ms.TITLE)
             author = request.json.get(ms.AUTHOR)
             author_email = request.json.get(ms.AUTHOR_EMAIL)
-            text = request.json.get(ms.TEXT)
+            text = request.json.get(ms.TEXT)  # We'll still get this from the request
             abstract = request.json.get(ms.ABSTRACT)
             editor_email = request.json.get(ms.EDITOR_EMAIL)
+            
+            print(f"Updating manuscript with ID: {manu_id}")
             ret = ms.update(manu_id, title, author, author_email,
                             text, abstract, editor_email)
         except Exception as err:
@@ -599,3 +606,111 @@ class Login(Resource):
             return {'message': 'Login successful'}, HTTPStatus.OK
         else:
             return {'error': 'Invalid credentials'}, HTTPStatus.UNAUTHORIZED
+
+
+# Add new endpoints for text pages
+TEXT_PAGE_FLDS = api.model('TextPageEntry', {
+    txt.MANUSCRIPT_ID: fields.String,
+    txt.PAGE_NUMBER: fields.String,
+    txt.TITLE: fields.String,
+    txt.TEXT: fields.String,
+})
+
+@api.route(f'{TEXT_EP}/manuscript/<manuscript_id>')
+class ManuscriptTextPages(Resource):
+    """
+    This class handles getting all text pages for a manuscript.
+    """
+    def get(self, manuscript_id):
+        """
+        Retrieve all text pages for a manuscript.
+        """
+        try:
+            pages = txt.read_by_manuscript(manuscript_id)
+            return pages
+        except Exception as err:
+            raise wz.NotAcceptable(f'Could not get text pages: {err}')
+
+@api.route(f'{TEXT_EP}/manuscript/<manuscript_id>/page/<page_number>')
+class ManuscriptTextPage(Resource):
+    """
+    This class handles getting a specific text page for a manuscript.
+    """
+    def get(self, manuscript_id, page_number):
+        """
+        Retrieve a specific text page for a manuscript.
+        """
+        page = txt.read_one(page_number)
+        if page and page.get(txt.MANUSCRIPT_ID) == manuscript_id:
+            return page
+        else:
+            raise wz.NotFound(f'No such page {page_number} for manuscript {manuscript_id}')
+    
+    @api.response(HTTPStatus.OK, 'Success.')
+    @api.response(HTTPStatus.NOT_FOUND, 'No such text page.')
+    def delete(self, manuscript_id, page_number):
+        """
+        Delete a text page.
+        """
+        page = txt.read_one(page_number)
+        if not page:
+            raise wz.NotFound(f'No such page: {page_number}')
+        
+        if page.get(txt.MANUSCRIPT_ID) != manuscript_id:
+            raise wz.NotAcceptable(f'Page {page_number} does not belong to manuscript {manuscript_id}')
+        
+        ret = txt.delete(page_number)
+        if ret is not None:
+            return {DELETED: ret}
+        else:
+            raise wz.NotFound(f'No such text page: {page_number}')
+
+@api.route(f'{TEXT_EP}/create')
+class TextPageCreate(Resource):
+    """
+    Add a text page to a manuscript.
+    """
+    @api.response(HTTPStatus.OK, 'Success.')
+    @api.response(HTTPStatus.NOT_ACCEPTABLE, 'Not acceptable.')
+    @api.expect(TEXT_PAGE_FLDS)
+    def put(self):
+        """
+        Add a new text page.
+        """
+        try:
+            manuscript_id = request.json.get(txt.MANUSCRIPT_ID)
+            page_number = request.json.get(txt.PAGE_NUMBER)
+            title = request.json.get(txt.TITLE)
+            text = request.json.get(txt.TEXT)
+            ret = txt.create(manuscript_id, page_number, title, text)
+        except Exception as err:
+            raise wz.NotAcceptable(f'Could not add text page: {err}')
+        return {
+            MESSAGE: 'Text page added!',
+            RETURN: ret,
+        }
+
+@api.route(f'{TEXT_EP}/update')
+class TextPageUpdate(Resource):
+    """
+    Update a text page.
+    """
+    @api.response(HTTPStatus.OK, 'Success.')
+    @api.response(HTTPStatus.NOT_ACCEPTABLE, 'Not acceptable.')
+    @api.expect(TEXT_PAGE_FLDS)
+    def put(self):
+        """
+        Update a text page.
+        """
+        try:
+            manuscript_id = request.json.get(txt.MANUSCRIPT_ID)
+            page_number = request.json.get(txt.PAGE_NUMBER)
+            title = request.json.get(txt.TITLE)
+            text = request.json.get(txt.TEXT)
+            ret = txt.update(manuscript_id, page_number, title, text)
+        except Exception as err:
+            raise wz.NotAcceptable(f'Could not update text page: {err}')
+        return {
+            MESSAGE: f'Text page {page_number} updated!',
+            RETURN: ret,
+        }

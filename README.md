@@ -39,3 +39,13 @@ Replace kc0000 and PASSWORD accordingly.
 
 `./local.sh`
 You should be good to go
+
+
+
+# for windows
+sudo systemctl start mongod
+sudo systemctl status mongod
+sudo systemctl stop mongod
+
+mongosh
+mongod --version
