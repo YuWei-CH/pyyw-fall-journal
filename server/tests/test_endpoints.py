@@ -5,6 +5,8 @@ from http.client import (
     NOT_FOUND,
     OK,
     SERVICE_UNAVAILABLE,
+    CREATED,
+    CONFLICT,
 )
 
 from unittest.mock import patch
@@ -26,6 +28,8 @@ TEST_MANU_ID = "test_manu_id"
 TEST_EMAIL = "testEmail@gmail.com"
 TEST_TITLE = "Test Manuscript Title"
 TEST_PAGE_NUMBER = "TestPageNumber"
+TEST_USERNAME = "testuser"
+TEST_PASSWORD = "testpass"
 
 
 def test_hello():
@@ -470,3 +474,39 @@ def test_update_state_invalid_action(mock_update_state):
         content_type='application/json'
     )
     assert resp.status_code == NOT_ACCEPTABLE
+
+
+AUTH_TEST_DATA = {
+    'username': TEST_USERNAME,
+    'password': TEST_PASSWORD,
+}
+
+
+@patch('security.auth.register_user', autospec=True, return_value=True)
+def test_register_success(mock_register):
+    """Test successful user registration"""
+    resp = TEST_CLIENT.post(
+        f'{ep.AUTH_EP}/register',
+        data=json.dumps(AUTH_TEST_DATA),
+        content_type='application/json'
+    )
+    assert resp.status_code == CREATED
+    resp_json = resp.get_json()
+    assert isinstance(resp_json, dict)
+    assert 'message' in resp_json
+    assert resp_json['message'] == 'User registered successfully'
+
+
+@patch('security.auth.register_user', autospec=True, return_value=False)
+def test_register_user_exists(mock_register):
+    """Test registration with existing username"""
+    resp = TEST_CLIENT.post(
+        f'{ep.AUTH_EP}/register',
+        data=json.dumps(AUTH_TEST_DATA),
+        content_type='application/json'
+    )
+    assert resp.status_code == CONFLICT
+    resp_json = resp.get_json()
+    assert isinstance(resp_json, dict)
+    assert 'error' in resp_json
+    assert resp_json['error'] == 'Username already exists'
