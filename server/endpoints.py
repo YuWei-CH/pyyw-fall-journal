@@ -574,6 +574,8 @@ class Register(Resource):
         Register a new user.
         """
         data = request.get_json()
+        if not data or 'username' not in data or 'password' not in data:
+            return {'error': 'Missing required fields'}, HTTPStatus.BAD_REQUEST
         success = auth.register_user(data['username'], data['password'])
         if success:
             return {
@@ -598,6 +600,8 @@ class Login(Resource):
         Authenticate a user.
         """
         data = request.get_json()
+        if not data or 'username' not in data or 'password' not in data:
+            return {'error': 'Missing required fields'}, HTTPStatus.BAD_REQUEST
         success = auth.authenticate_user(
             data['username'],
             data['password']
