@@ -249,6 +249,7 @@ def test_read_one_text_not_found(mock_read):
 
 
 TEXT_TEST_DATA = {
+    MANUSCRIPT_ID: TEST_MANU_ID,
     PAGE_NUMBER: TEST_PAGE_NUMBER,
     TITLE: "Test Title",
     TEXT: "Test Text",
@@ -257,11 +258,15 @@ TEXT_TEST_DATA = {
 
 @patch('data.text.create', autospec=True, return_value=TEST_PAGE_NUMBER)
 def test_create_text(mock_create):
+    print(f"TEXT_TEST_DATA: {TEXT_TEST_DATA}")
+    mock_create.side_effect = lambda manuscript_id, page_number, title, text: TEST_PAGE_NUMBER
     resp = TEST_CLIENT.put(
         f'{ep.TEXT_EP}/create',
         data=json.dumps(TEXT_TEST_DATA),
         content_type='application/json'
     )
+    if resp.status_code != OK:
+        print(f"Error response: {resp.get_json()}")
     assert resp.status_code == OK
     resp_json = resp.get_json()
     assert isinstance(resp_json, dict)
@@ -296,11 +301,14 @@ def test_delete_text_not_found(mock_delete):
 
 @patch('data.text.update', autospec=True, return_value=TEST_PAGE_NUMBER)
 def test_update_text(mock_update):
+    mock_update.side_effect = lambda manuscript_id, page_number, title, text: TEST_PAGE_NUMBER
     resp = TEST_CLIENT.put(
         f'{ep.TEXT_EP}/update',
         data=json.dumps(TEXT_TEST_DATA),
         content_type='application/json'
     )
+    if resp.status_code != OK:
+        print(f"Error response: {resp.get_json()}")
     assert resp.status_code == OK
     resp_json = resp.get_json()
     assert isinstance(resp_json, dict)
@@ -404,11 +412,16 @@ def test_create_manuscript_failed(mock_create):
 
 @patch('data.manuscript.update', autospec=True, return_value=TEST_MANU_ID)
 def test_update_manuscript(mock_update):
+    mock_update.side_effect = lambda manu_id, title, author, author_email, text, abstract, editor_email: TEST_MANU_ID
+    data = MANUSCRIPT_DATA.copy()
+    data[ms.MANU_ID] = TEST_MANU_ID
     resp = TEST_CLIENT.put(
         f'{ep.MANUSCRIPT_EP}/update',
-        data=json.dumps(MANUSCRIPT_DATA),
+        data=json.dumps(data),
         content_type='application/json'
     )
+    if resp.status_code != OK:
+        print(f"Error response: {resp.get_json()}")
     assert resp.status_code == OK
     resp_json = resp.get_json()
     assert isinstance(resp_json, dict)

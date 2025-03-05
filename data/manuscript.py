@@ -14,7 +14,7 @@ STATE = 'state'
 REFEREES = 'referees'
 # TEXT field is deprecated - we now use the text collection
 # but keeping it for backward compatibility with endpoints.py
-TEXT = 'text'  
+TEXT = 'text'
 ABSTRACT = 'abstract'
 HISTORY = 'history'
 EDITOR_EMAIL = 'editor_email'
@@ -95,14 +95,15 @@ def to_object_id(manu_id):
     if not manu_id:
         print("Cannot convert empty or None manuscript ID to ObjectId")
         return None
-        
+
     try:
         print(f"Converting manu_id to ObjectId: {manu_id}")
         obj_id = ObjectId(manu_id)
         print(f"Successfully converted to ObjectId: {obj_id}")
         return obj_id
     except Exception as e:
-        print(f"Failed to convert manu_id to ObjectId: {manu_id}, error: {str(e)}")
+        print(f"Failed to convert manu_id to ObjectId: {manu_id}, "
+              f"error: {str(e)}")
         return None
 
 
@@ -238,15 +239,14 @@ def handle_action(manu_id, curr_state, action, **kwargs) -> str:
     return STATE_TABLE[curr_state][action][FUNC](**kwargs)
 
 
-def read() -> list:
+def read() -> dict:
     """
     Our contract:
         - No arguments.
-        - Returns a list of all manuscripts.
+        - Returns a dictionary of all manuscripts with titles as keys.
     """
     manuscripts = dbc.read_dict(MANUSCRIPTS_COLLECT, TITLE, no_id=False)
-    # Convert the dictionary to a list of manuscripts
-    return list(manuscripts.values()) if manuscripts else []
+    return manuscripts if manuscripts else {}
 
 
 def read_one(manu_id: str) -> dict:
@@ -258,13 +258,13 @@ def read_one(manu_id: str) -> dict:
     if obj_id is None:
         print(f"Invalid manuscript ID format: {manu_id}")
         return None
-    
+
     manuscript = dbc.read_one(MANUSCRIPTS_COLLECT, {MANU_ID: obj_id})
     if manuscript:
         print(f"Found manuscript: {manuscript}")
     else:
         print(f"No manuscript found with ID: {manu_id}")
-    
+
     return manuscript
 
 
@@ -275,7 +275,7 @@ def exists(manu_id: str) -> bool:
     if not manu_id:
         print("Cannot check existence of empty or None manuscript ID")
         return False
-        
+
     print(f"Checking if manuscript exists: {manu_id}")
     manuscript = read_one(manu_id)
     exists = manuscript is not None
@@ -289,10 +289,10 @@ def is_valid_manuscript(title: str, author: str,
                         manu_id: str = None) -> bool:
     """
     Validate manuscript data before creation or update.
-    
-    Note: The text parameter is validated here but will be stored in the text collection,
-    not directly in the manuscript document.
-    
+
+    Note: The text parameter is validated here but will be stored in the text
+    collection, not directly in the manuscript document.
+
     Args:
         title: The manuscript title
         author: The author name
@@ -300,17 +300,18 @@ def is_valid_manuscript(title: str, author: str,
         text: The initial text content (will be stored as page 1)
         abstract: The manuscript abstract
         editor_email: The editor's email
-        manu_id: Optional. The manuscript ID when updating an existing manuscript
-        
+        manu_id: Optional. The manuscript ID when update an existing manuscript
+
     Returns:
         True if all validations pass
-        
+
     Raises:
         ValueError: If any validation fails
     """
-    print(f"Validating manuscript: {title=}, {author=}, {author_email=}, {abstract=}, {editor_email=}, {manu_id=}")
+    print(f"Validating manuscript: {title=}, {author=}, "
+          f"{author_email=}, {abstract=}, {editor_email=}, {manu_id=}")
     print(f"Text length: {len(text) if text else 0}")
-    
+
     if not ppl.is_valid_email(author_email):
         print(f"Invalid author email: {author_email}")
         raise ValueError(f'Author email invalid: {author_email}')
@@ -323,32 +324,42 @@ def is_valid_manuscript(title: str, author: str,
     if not author.strip():
         print("Author is blank")
         raise ValueError("Author cannot be blank")
-    
-    # Only check text content for new manuscripts or if explicitly provided for updates
-    if manu_id is None or (text and text.strip()):
+
+    # Text validation logic
+    if manu_id is None:
         if not text.strip():
-            print("Text is blank")
-            raise ValueError("Text cannot be blank")
+            print("Text is blank for new manuscript")
+            raise ValueError("Text cannot be blank for new manuscript")
     else:
-        print("Skipping text validation for existing manuscript update")
-    
+        if text is not None and not text.strip():
+            print("Text is blank for manuscript update")
+            raise ValueError("Text cannot be blank when provided for update")
+        else:
+            print("Skipping text validation for existing "
+                  "manuscript update with no text provided")
     if not abstract.strip():
         print("Abstract is blank")
         raise ValueError("Abstract cannot be blank")
-    
-    # Only check for duplicate manuscripts when creating a new one (manu_id is None)
+
+    # Only check for duplicate manuscripts when creating a new one (manu_id is
+    # None)
     if manu_id is None:
         print("Checking for duplicate manuscripts (new manuscript)")
-        existing_manuscript = dbc.read_one(MANUSCRIPTS_COLLECT,
-                                        {TITLE: title,
-                                            AUTHOR_EMAIL: author_email})
+        existing_manuscript = dbc.read_one(
+            MANUSCRIPTS_COLLECT,
+            {TITLE: title, AUTHOR_EMAIL: author_email}
+        )
         if existing_manuscript:
-            print(f"Found duplicate manuscript: {existing_manuscript}")
-            raise ValueError(f"A manuscript with title '{title}' and "
-                            f"author email '{author_email}' already exists.")
+            print(f"Found duplicate manuscript: "
+                  f"{existing_manuscript}")
+            raise ValueError(
+                f"A manuscript with title '{title}' and "
+                f"author email '{author_email}' already exists."
+            )
     else:
-        print(f"Skipping duplicate check for existing manuscript with ID: {manu_id}")
-    
+        print(
+            f"Skipping check for existing manuscript with ID: {manu_id}")
+
     print("Manuscript validation successful")
     return True
 
@@ -369,10 +380,10 @@ def create(title: str, author: str, author_email: str,
         }
         result = dbc.create(MANUSCRIPTS_COLLECT, manuscript)
         manu_id = str(result.inserted_id)
-        
+
         # Create the first text page for this manuscript
         text_module.create(manu_id, "1", f"Page 1 of {title}", text)
-        
+
         return manu_id
 
 
@@ -381,35 +392,52 @@ def delete(manu_id: str):
     Delete the manuscript with the given manu_id.
     Returns the manu_id if deletion succeeded, else None.
     """
-    # First delete all text pages associated with this manuscript
-    text_module.delete_manuscript_texts(manu_id)
-    
-    # Then delete the manuscript itself
-    del_num = dbc.delete(MANUSCRIPTS_COLLECT, {MANU_ID: to_object_id(manu_id)})
-    return manu_id if del_num == 1 else None
+    try:
+        obj_id = to_object_id(manu_id)
+        if obj_id is None:
+            print(f"Invalid manuscript ID format: {manu_id}")
+            return None
+        if not exists(manu_id):
+            print(f"Manuscript does not exist: {manu_id}")
+            return None
+
+        text_module.delete_manuscript_texts(manu_id)
+        del_result = dbc.delete(MANUSCRIPTS_COLLECT, obj_id)
+        if del_result is not None:
+            print(f"Successfully deleted manuscript: {manu_id}")
+            return manu_id
+        else:
+            print(f"Failed to delete manuscript: {manu_id}")
+            return None
+    except Exception as e:
+        print(f"Error deleting manuscript {manu_id}: {str(e)}")
+        return None
 
 
 def update(manu_id: str, title: str, author: str, author_email: str,
            text: str, abstract: str, editor_email: str):
-    print(f"Updating manuscript: {manu_id=}, {title=}, {author=}, {author_email=}, {abstract=}, {editor_email=}")
+    print(f"Updating manuscript: {manu_id=}, {title=}, "
+          f"{author=}, {author_email=}, {abstract=}, {editor_email=}")
     print(f"Text length: {len(text) if text else 0}")
     print(f"Manuscript ID type: {type(manu_id)}")
-    
+
     # Explicit check for manuscript ID
     if not manu_id:
         print("Manuscript ID is missing or empty")
         raise ValueError('Manuscript ID is required for update')
-    
+
     # Check if manuscript exists
     if not exists(manu_id):
-        print(f"Manuscript does not exist: {manu_id=}")
+        print(f"Manuscript does not exist: "
+              f"{manu_id=}")
         raise ValueError(f'Updating non-existent manuscript: {manu_id=}')
-    
+
     # Validate manuscript data
     try:
         print(f"Validating manuscript data with manu_id={manu_id}")
-        is_valid_manuscript(title, author, author_email, text, abstract, editor_email, manu_id)
-        
+        is_valid_manuscript(title, author, author_email, text, abstract,
+                            editor_email, manu_id)
+
         # Update manuscript fields
         updated_fields = {
             TITLE: title,
@@ -419,66 +447,81 @@ def update(manu_id: str, title: str, author: str, author_email: str,
             EDITOR_EMAIL: editor_email,
         }
         print(f"Updating manuscript fields: {updated_fields}")
-        
+
         # Convert manu_id to ObjectId
         obj_id = to_object_id(manu_id)
         if not obj_id:
             print(f"Failed to convert manu_id to ObjectId: {manu_id}")
             raise ValueError(f"Invalid manuscript ID format: {manu_id}")
-            
+
         print(f"Using ObjectId for update: {obj_id}")
         dbc.update(MANUSCRIPTS_COLLECT,
-                {MANU_ID: obj_id},
-                updated_fields)
-        
+                   {MANU_ID: obj_id},
+                   updated_fields)
+
         # Only update text pages if text is provided and not empty
         if text and text.strip():
             try:
                 # Update the first text page or create it if it doesn't exist
                 text_pages = text_module.read_by_manuscript(manu_id)
-                print(f"Found {len(text_pages)} text pages for manuscript {manu_id}")
-                
+                print(f"Found {len(text_pages)} text pages for "
+                      f"manuscript {manu_id}")
+
                 if text_pages:
                     # Update the first page
                     try:
-                        print(f"Attempting to update first text page: {text_pages[0][text_module.PAGE_NUMBER]}")
-                        text_module.update(manu_id, text_pages[0][text_module.PAGE_NUMBER], 
-                                        f"Page 1 of {title}", text)
+                        print(f"Attempting to update first text page: "
+                              f"{text_pages[0][text_module.PAGE_NUMBER]}")
+                        text_module.update(
+                            manu_id,
+                            text_pages[0][text_module.PAGE_NUMBER],
+                            f"Page 1 of {title}",
+                            text
+                        )
                         print("Successfully updated first text page")
                     except ValueError as e:
                         print(f"Error updating first text page: {str(e)}")
                         # If update fails, try to create the page
                         if "Updating non-existent page" in str(e):
-                            print("Creating new first page since update failed")
-                            text_module.create(manu_id, "1", f"Page 1 of {title}", text)
+                            print("Creating new fp since update failed")
+                            text_module.create(
+                                manu_id, "1", f"Page 1 of {title}", text)
                         else:
                             raise
                 else:
                     # Create a new first page
                     try:
                         print("No text pages found, creating new first page")
-                        text_module.create(manu_id, "1", f"Page 1 of {title}", text)
+                        text_module.create(
+                            manu_id, "1", f"Page 1 of {title}", text)
                         print("Successfully created first text page")
                     except ValueError as e:
                         print(f"Error creating first text page: {str(e)}")
-                        # If create fails because the page already exists, try to update it
+                        # If create fails because page already exists, try to
+                        # update it
                         if "Adding duplicate page_number" in str(e):
-                            print("Updating existing first page since create failed")
-                            text_module.update(manu_id, "1", f"Page 1 of {title}", text)
+                            print("Updating existing fp since create failed")
+                            text_module.update(
+                                manu_id, "1", f"Page 1 of {title}", text)
                         else:
                             raise
             except Exception as e:
-                print(f"Error handling text pages: {str(e)}")
+                print(f"Error handling text pages: "
+                      f"{str(e)}")
                 # Continue with the update even if text page handling fails
                 # We don't want to roll back the manuscript update
-                print(f"Manuscript {manu_id} updated, but text page update failed: {str(e)}")
+                print(
+                    f"Manuscript {manu_id} updated, "
+                    f"but text page update failed: {str(e)}")
         else:
             print("Skipping text page update as no text content was provided")
-        
-        print(f"Successfully updated manuscript {manu_id}")
+
+        print(f"Successfully updated manuscript "
+              f"{manu_id}")
         return manu_id
     except Exception as e:
-        print(f"Error in update function: {str(e)}")
+        print(f"Error in update function: "
+              f"{str(e)}")
         raise
 
 
@@ -515,57 +558,58 @@ def main():
 if __name__ == '__main__':
     main()
 
+
 # Add new functions to handle text pages
 
 def add_text_page(manu_id: str, page_number: str, title: str, content: str):
     """
     Add a new text page to a manuscript.
-    
+
     Args:
         manu_id: The manuscript ID
         page_number: The page number
         title: The title of the page
         content: The text content
-        
+
     Returns:
         The page number if creation succeeded
     """
     if not exists(manu_id):
         raise ValueError(f'Manuscript does not exist: {manu_id=}')
-    
+
     return text_module.create(manu_id, page_number, title, content)
 
 
 def get_text_pages(manu_id: str) -> list:
     """
     Get all text pages for a manuscript.
-    
+
     Args:
         manu_id: The manuscript ID
-        
+
     Returns:
         A list of text pages sorted by page number
     """
     if not exists(manu_id):
         raise ValueError(f'Manuscript does not exist: {manu_id=}')
-    
+
     return text_module.read_by_manuscript(manu_id)
 
 
 def get_text_page(manu_id: str, page_number: str) -> dict:
     """
     Get a specific text page from a manuscript.
-    
+
     Args:
         manu_id: The manuscript ID
         page_number: The page number
-        
+
     Returns:
         The text page dictionary or None if not found
     """
     if not exists(manu_id):
         raise ValueError(f'Manuscript does not exist: {manu_id=}')
-    
+
     page = text_module.read_one(page_number)
     if page and page.get(text_module.MANUSCRIPT_ID) == manu_id:
         return page
@@ -575,48 +619,50 @@ def get_text_page(manu_id: str, page_number: str) -> dict:
 def update_text_page(manu_id: str, page_number: str, title: str, content: str):
     """
     Update a text page in a manuscript.
-    
+
     Args:
         manu_id: The manuscript ID
         page_number: The page number
         title: The new title
         content: The new content
-        
+
     Returns:
         The page number if update succeeded
     """
     if not exists(manu_id):
         raise ValueError(f'Manuscript does not exist: {manu_id=}')
-    
+
     page = text_module.read_one(page_number)
     if not page:
         raise ValueError(f'Page does not exist: {page_number=}')
-    
+
     if page.get(text_module.MANUSCRIPT_ID) != manu_id:
-        raise ValueError(f'Page {page_number} does not belong to manuscript {manu_id}')
-    
+        raise ValueError(f'Page {page_number} does not belong to '
+                         f'manuscript {manu_id}')
+
     return text_module.update(manu_id, page_number, title, content)
 
 
 def delete_text_page(manu_id: str, page_number: str):
     """
     Delete a text page from a manuscript.
-    
+
     Args:
         manu_id: The manuscript ID
         page_number: The page number
-        
+
     Returns:
         The page number if deletion succeeded
     """
     if not exists(manu_id):
         raise ValueError(f'Manuscript does not exist: {manu_id=}')
-    
+
     page = text_module.read_one(page_number)
     if not page:
         return None
-    
+
     if page.get(text_module.MANUSCRIPT_ID) != manu_id:
-        raise ValueError(f'Page {page_number} does not belong to manuscript {manu_id}')
-    
+        raise ValueError(f'Page {page_number} does not belong to '
+                         f'manuscript {manu_id}')
+
     return text_module.delete(page_number)
