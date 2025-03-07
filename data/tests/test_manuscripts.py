@@ -1,9 +1,6 @@
 import pytest
 import random
 import data.manuscript as ms
-import data.text as text_module
-import data.db_connect as dbc
-from bson import ObjectId
 
 
 TEST_TITLE = "Test Manuscript Title"
@@ -35,42 +32,15 @@ def gen_random_not_valid_str() -> str:
 
 @pytest.fixture(scope='function')
 def temp_manuscript():
-    try:
-        existing = dbc.read_one(ms.MANUSCRIPTS_COLLECT, 
-                               {ms.TITLE: TEMP_TITLE, ms.AUTHOR_EMAIL: TEMP_AUTHOR_EMAIL})
-        if existing:
-            obj_id = existing.get(ms.MANU_ID)
-            if obj_id:
-                dbc.delete(ms.MANUSCRIPTS_COLLECT, {ms.MANU_ID: obj_id})
-        dbc.delete_many(ms.MANUSCRIPTS_COLLECT, ms.TITLE, TEMP_TITLE)
-        dbc.delete_many(ms.MANUSCRIPTS_COLLECT, ms.AUTHOR_EMAIL, TEMP_AUTHOR_EMAIL)
-    except Exception as e:
-        print(f"cleanup failed: {str(e)}")
-        pass
-    manu_id = None
-    try:
-        manu_id = ms.create(TEMP_TITLE, TEMP_AUTHOR, TEMP_AUTHOR_EMAIL,
-                          TEMP_TEXT, TEMP_ABSTRACT, TEMP_EDITOR_EMAIL)
-    except ValueError as e:
-        print(f"create failed: {str(e)}")
-        existing = dbc.read_one(ms.MANUSCRIPTS_COLLECT, 
-                               {ms.TITLE: TEMP_TITLE, ms.AUTHOR_EMAIL: TEMP_AUTHOR_EMAIL})
-        if existing:
-            manu_id = str(existing.get(ms.MANU_ID))
-            print(f"use existing manuscript: {manu_id}")
-    if not manu_id:
-        pytest.fail("can't create manuscript")
-    
+    # Create a temporary manuscript and yield its title
+    manu_id = ms.create(TEMP_TITLE, TEMP_AUTHOR, TEMP_AUTHOR_EMAIL, 
+                      TEMP_TEXT, TEMP_ABSTRACT, TEMP_EDITOR_EMAIL)
     yield manu_id
+    # Attempt to delete after test
     try:
         ms.delete(manu_id)
-    except Exception as e:
-        print(f'failed to delete manuscript: {str(e)}')
-        try:
-            if ms.to_object_id(manu_id):
-                dbc.delete(ms.MANUSCRIPTS_COLLECT, {ms.MANU_ID: ms.to_object_id(manu_id)})
-        except Exception as e2:
-            print(f'failed to delete manuscript: {str(e2)}')
+    except:
+        print('Manuscript already deleted. ')
 
 
 def test_is_valid_state():
@@ -120,20 +90,10 @@ def test_handle_action_valid_return(temp_manuscript):
 
 
 def test_create():
-    try:
-        dbc.delete_many(ms.MANUSCRIPTS_COLLECT, ms.TITLE, TEST_TITLE)
-        dbc.delete_many(ms.MANUSCRIPTS_COLLECT, ms.AUTHOR_EMAIL, TEST_AUTHOR_EMAIL)
-        existing = dbc.read_one(ms.MANUSCRIPTS_COLLECT, 
-                             {ms.TITLE: TEST_TITLE, ms.AUTHOR_EMAIL: TEST_AUTHOR_EMAIL})
-        if existing:
-            obj_id = existing.get(ms.MANU_ID)
-            if obj_id:
-                dbc.delete(ms.MANUSCRIPTS_COLLECT, {ms.MANU_ID: obj_id})
-    except Exception as e:
-        print(f"error: {str(e)}")
     manu_id = ms.create(TEST_TITLE, TEST_AUTHOR, TEST_AUTHOR_EMAIL, 
               TEST_TEXT, TEST_ABSTRACT, TEST_EDITOR_EMAIL)
     assert ms.exists(manu_id)
+    # Cleanup
     ms.delete(manu_id)
 
 
@@ -199,6 +159,7 @@ def test_read(temp_manuscript):
         assert ms.AUTHOR_EMAIL in manuscript
         assert ms.STATE in manuscript
         assert ms.REFEREES in manuscript
+        assert ms.TEXT in manuscript
         assert ms.ABSTRACT in manuscript
         assert ms.HISTORY in manuscript
         assert ms.EDITOR_EMAIL in manuscript
@@ -262,27 +223,30 @@ def test_update(temp_manuscript):
     old_title = ms.read_one(temp_manuscript)[ms.TITLE]
     old_author = ms.read_one(temp_manuscript)[ms.AUTHOR]
     old_author_email = ms.read_one(temp_manuscript)[ms.AUTHOR_EMAIL]
-    old_text_pages = ms.get_text_pages(temp_manuscript)
+    old_text = ms.read_one(temp_manuscript)[ms.TEXT]
     old_abstract = ms.read_one(temp_manuscript)[ms.ABSTRACT]
     old_editor_email = ms.read_one(temp_manuscript)[ms.EDITOR_EMAIL]
-    
     manu_id = ms.update(temp_manuscript, TEST_TITLE, TEST_AUTHOR, TEST_AUTHOR_EMAIL,
                       TEST_TEXT, TEST_ABSTRACT, TEST_EDITOR_EMAIL)
-                      
     updated_title = ms.read_one(temp_manuscript)[ms.TITLE]
     updated_author = ms.read_one(temp_manuscript)[ms.AUTHOR]
     updated_author_email = ms.read_one(temp_manuscript)[ms.AUTHOR_EMAIL]
-    updated_text_pages = ms.get_text_pages(temp_manuscript)
+    updated_text = ms.read_one(temp_manuscript)[ms.TEXT]
     updated_abstract = ms.read_one(temp_manuscript)[ms.ABSTRACT]
     updated_editor_email = ms.read_one(temp_manuscript)[ms.EDITOR_EMAIL]
-    
+    assert manu_id == temp_manuscript
+    assert old_title != updated_title
+    assert old_author != updated_author
+    assert old_author_email != updated_author_email
+    assert old_text != updated_text
+    assert old_abstract != updated_abstract
+    assert old_editor_email != updated_editor_email
     assert updated_title == TEST_TITLE
     assert updated_author == TEST_AUTHOR
     assert updated_author_email == TEST_AUTHOR_EMAIL
+    assert updated_text == TEST_TEXT
     assert updated_abstract == TEST_ABSTRACT
     assert updated_editor_email == TEST_EDITOR_EMAIL
-    assert len(updated_text_pages) > 0
-    assert manu_id == temp_manuscript
 
 
 def test_assign_ref(temp_manuscript):
@@ -354,4 +318,3 @@ def test_update_state_history_tracking(temp_manuscript):
     updated_manuscript = ms.read_one(temp_manuscript)
     assert ms.IN_REF_REV in updated_manuscript[ms.HISTORY]
     assert len(updated_manuscript[ms.HISTORY]) == len(initial_history) + 1
-

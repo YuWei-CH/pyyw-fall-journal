@@ -39,18 +39,3 @@ Replace kc0000 and PASSWORD accordingly.
 
 `./local.sh`
 You should be good to go
-
-
-
-# for windows
-sudo systemctl start mongod
-sudo systemctl status mongod
-sudo systemctl stop mongod
-
-mongosh
-mongod --version
-
-
-fix formatting
-autopep8 --in-place --aggressive --aggressive --max-line-length=79 data/text.py
-cd pyyw-fall-journal && python3 fix_formatting.py data/text.py

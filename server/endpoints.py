@@ -298,61 +298,27 @@ TEXT_FLDS = api.model('TextEntry', {
 
 
 @api.route(f'{TEXT_EP}/create')
-class TextPageCreate(Resource):
+class TextCreate(Resource):
     """
-    Add a text page to a manuscript.
+    Add a Text to the journal db.
     """
-    @api.response(HTTPStatus.OK, 'Success.')
-    @api.response(HTTPStatus.NOT_ACCEPTABLE, 'Not acceptable.')
+    @api.response(HTTPStatus.OK, 'Success. ')
+    @api.response(HTTPStatus.NOT_ACCEPTABLE, 'Not acceptable. ')
     @api.expect(TEXT_FLDS)
     def put(self):
         """
-        Add a new text page.
+        Add a text.
         """
         try:
-            print(f"Request data: {request.json}")
-            print(f"txt.TEXT = {txt.TEXT}")
-            print(f"txt.MANUSCRIPT_ID = {txt.MANUSCRIPT_ID}")
-            print(f"txt.PAGE_NUMBER = {txt.PAGE_NUMBER}")
-            print(f"txt.TITLE = {txt.TITLE}")
-
-            manuscript_id = request.json.get(txt.MANUSCRIPT_ID)
-            page_number = request.json.get(txt.PAGE_NUMBER)
             title = request.json.get(txt.TITLE)
             text = request.json.get(txt.TEXT)
-
-            print(f"manuscript_id = {manuscript_id}")
-            print(f"page_number = {page_number}")
-            print(f"title = {title}")
-            print(f"text = {text}")
-
-            if text is None:
-                raise ValueError(
-                    f"Missing required 'text' field in request: {request.json}"
-                )
-
-            # This is a workaround for the test case where data.text.create
-            # is mocked. The mock expects manuscript_id, page_number, title,
-            # text as separate arguments
-            try:
-                ret = txt.create(manuscript_id, page_number, title, text)
-            except TypeError as e:
-                if "missing a required argument: 'text'" in str(e):
-                    # The mock function is expecting different arguments
-                    # Try calling with values directly from the request
-                    ret = txt.create(
-                        request.json.get('manuscript_id'),
-                        request.json.get('pageNumber'),
-                        request.json.get('title'),
-                        request.json.get('text')
-                    )
-                else:
-                    raise
+            page_number = request.json.get(txt.PAGE_NUMBER)
+            ret = txt.create(page_number, title, text)
         except Exception as err:
-            print(f"Error in create text: {err}")
-            raise wz.NotAcceptable(f'Could not add text page: {err}')
+            raise wz.NotAcceptable(f'Could not add text: '
+                                   f'{err=}')
         return {
-            MESSAGE: 'Text page added!',
+            MESSAGE: 'Text added!',
             RETURN: ret,
         }
 
@@ -386,52 +352,27 @@ class Text(Resource):
 
 
 @api.route(f'{TEXT_EP}/update')
-class TextPageUpdate(Resource):
+class TextUpdate(Resource):
     """
-    Update a text page.
+    This class handles the update of a text's information.
     """
-    @api.response(HTTPStatus.OK, 'Success.')
-    @api.response(HTTPStatus.NOT_ACCEPTABLE, 'Not acceptable.')
+    @api.response(HTTPStatus.OK, 'Success. ')
+    @api.response(HTTPStatus.NOT_ACCEPTABLE, 'Not acceptable. ')
     @api.expect(TEXT_FLDS)
     def put(self):
         """
-        Update a text page.
+        Update text information.
         """
         try:
-            print(f"Request data: {request.json}")
-
-            manuscript_id = request.json.get(txt.MANUSCRIPT_ID)
             page_number = request.json.get(txt.PAGE_NUMBER)
             title = request.json.get(txt.TITLE)
             text = request.json.get(txt.TEXT)
-
-            if text is None:
-                raise ValueError(
-                    f"Missing required 'text' field in request: {request.json}"
-                )
-
-            # This is a workaround for the test case where data.text.update
-            # is mocked. The mock expects manuscript_id, page_number, title,
-            # text as separate arguments
-            try:
-                ret = txt.update(manuscript_id, page_number, title, text)
-            except TypeError as e:
-                if "missing a required argument: 'text'" in str(e):
-                    # The mock function is expecting different arguments
-                    # Try calling with values directly from the request
-                    ret = txt.update(
-                        request.json.get('manuscript_id'),
-                        request.json.get('pageNumber'),
-                        request.json.get('title'),
-                        request.json.get('text')
-                    )
-                else:
-                    raise
+            ret = txt.update(page_number, title, text)
         except Exception as err:
-            print(f"Error in update text: {err}")
-            raise wz.NotAcceptable(f'Could not update text page: {err}')
+            raise wz.NotAcceptable(f'Could not update text: '
+                                   f'{err=}')
         return {
-            MESSAGE: f'Text page {page_number} updated!',
+            MESSAGE: f'{page_number} updated!',
             RETURN: ret,
         }
 
@@ -496,7 +437,6 @@ MANUSCRIPT_FLDS = api.model('ManuscriptEntry', {
     ms.TITLE: fields.String,
     ms.AUTHOR: fields.String,
     ms.AUTHOR_EMAIL: fields.String,
-    # Keep this for backward compatibility with frontend
     ms.TEXT: fields.String,
     ms.ABSTRACT: fields.String,
     ms.EDITOR_EMAIL: fields.String,
@@ -519,7 +459,6 @@ class ManuscriptCreate(Resource):
             title = request.json.get(ms.TITLE)
             author = request.json.get(ms.AUTHOR)
             author_email = request.json.get(ms.AUTHOR_EMAIL)
-            # We'll still get this from the request
             text = request.json.get(ms.TEXT)
             abstract = request.json.get(ms.ABSTRACT)
             editor_email = request.json.get(ms.EDITOR_EMAIL)
@@ -539,7 +478,6 @@ MANUSCRIPT_UPDATE_FLDS = api.model('ManuscriptUpdateEntry', {
     ms.TITLE: fields.String,
     ms.AUTHOR: fields.String,
     ms.AUTHOR_EMAIL: fields.String,
-    # Keep this for backward compatibility with frontend
     ms.TEXT: fields.String,
     ms.ABSTRACT: fields.String,
     ms.EDITOR_EMAIL: fields.String,
@@ -560,20 +498,12 @@ class ManuscriptUpdate(Resource):
         """
         try:
             manu_id = request.json.get(ms.MANU_ID)
-
-            # Validate manuscript ID
-            if not manu_id:
-                raise ValueError('Manuscript ID is required for update')
-
             title = request.json.get(ms.TITLE)
             author = request.json.get(ms.AUTHOR)
             author_email = request.json.get(ms.AUTHOR_EMAIL)
-            # We'll still get this from the request
             text = request.json.get(ms.TEXT)
             abstract = request.json.get(ms.ABSTRACT)
             editor_email = request.json.get(ms.EDITOR_EMAIL)
-
-            print(f"Updating manuscript with ID: {manu_id}")
             ret = ms.update(manu_id, title, author, author_email,
                             text, abstract, editor_email)
         except Exception as err:
@@ -637,8 +567,6 @@ class Register(Resource):
         Register a new user.
         """
         data = request.get_json()
-        if not data or 'username' not in data or 'password' not in data:
-            return {'error': 'Missing required fields'}, HTTPStatus.BAD_REQUEST
         success = auth.register_user(data['username'], data['password'])
         if success:
             return {
@@ -663,8 +591,6 @@ class Login(Resource):
         Authenticate a user.
         """
         data = request.get_json()
-        if not data or 'username' not in data or 'password' not in data:
-            return {'error': 'Missing required fields'}, HTTPStatus.BAD_REQUEST
         success = auth.authenticate_user(
             data['username'],
             data['password']
@@ -673,68 +599,3 @@ class Login(Resource):
             return {'message': 'Login successful'}, HTTPStatus.OK
         else:
             return {'error': 'Invalid credentials'}, HTTPStatus.UNAUTHORIZED
-
-
-# Add new endpoints for text pages
-TEXT_PAGE_FLDS = api.model('TextPageEntry', {
-    txt.MANUSCRIPT_ID: fields.String,
-    txt.PAGE_NUMBER: fields.String,
-    txt.TITLE: fields.String,
-    txt.TEXT: fields.String,
-})
-
-
-@api.route(f'{TEXT_EP}/manuscript/<manuscript_id>')
-class ManuscriptTextPages(Resource):
-    """
-    This class handles getting all text pages for a manuscript.
-    """
-    def get(self, manuscript_id):
-        """
-        Retrieve all text pages for a manuscript.
-        """
-        try:
-            pages = txt.read_by_manuscript(manuscript_id)
-            return pages
-        except Exception as err:
-            raise wz.NotAcceptable(f'Could not get text pages: {err}')
-
-
-@api.route(f'{TEXT_EP}/manuscript/<manuscript_id>/page/<page_number>')
-class ManuscriptTextPage(Resource):
-    """
-    This class handles getting a specific text page for a manuscript.
-    """
-    def get(self, manuscript_id, page_number):
-        """
-        Retrieve a specific text page for a manuscript.
-        """
-        page = txt.read_one(page_number)
-        if page and page.get(txt.MANUSCRIPT_ID) == manuscript_id:
-            return page
-        else:
-            raise wz.NotFound(
-                f'No such page {page_number} for manuscript {manuscript_id}'
-            )
-
-    @api.response(HTTPStatus.OK, 'Success.')
-    @api.response(HTTPStatus.NOT_FOUND, 'No such text page.')
-    def delete(self, manuscript_id, page_number):
-        """
-        Delete a text page.
-        """
-        page = txt.read_one(page_number)
-        if not page:
-            raise wz.NotFound(f'No such page: {page_number}')
-
-        if page.get(txt.MANUSCRIPT_ID) != manuscript_id:
-            raise wz.NotAcceptable(
-                f'Page {page_number} does not belong to '
-                f'manuscript {manuscript_id}'
-            )
-
-        ret = txt.delete(page_number)
-        if ret is not None:
-            return {DELETED: ret}
-        else:
-            raise wz.NotFound(f'No such text page: {page_number}')
