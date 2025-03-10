@@ -11,6 +11,7 @@ NAME = 'name'
 ROLES = 'roles'
 AFFILIATION = 'affiliation'
 EMAIL = 'email'
+BIO = 'bio'
 
 # for re check
 CHAR_OR_DIGIT = '[A-Za-z0-9]'
@@ -53,8 +54,10 @@ def exists(email: str) -> bool:
     return read_one(email) is not None
 
 
-def is_valid_person(name: str, affiliation: str, email: str,
-                    role: str = None, roles: list = None) -> bool:
+def is_valid_person(
+        name: str, affiliation: str, email: str,
+        role: str = None, roles: list = None, bio: str = None
+) -> bool:
     if not is_valid_email(email):
         raise ValueError(f'Invalid email: {email}')
     if not name.strip() or not affiliation.strip():
@@ -69,7 +72,7 @@ def is_valid_person(name: str, affiliation: str, email: str,
     return True
 
 
-def create(name: str, affiliation: str, email: str, role: str):
+def create(name: str, affiliation: str, email: str, role: str, bio: str = ""):
     if exists(email):
         raise ValueError(f'Adding duplicate {email=}')
     if is_valid_person(name, affiliation, email, role=role):
@@ -80,9 +83,9 @@ def create(name: str, affiliation: str, email: str, role: str):
             NAME: name,
             AFFILIATION: affiliation,
             EMAIL: email,
-            ROLES: roles
+            ROLES: roles,
+            BIO: bio
         }
-        # print(person)
         dbc.create(PEOPLE_COLLECT, person)
         return email
 
@@ -92,12 +95,14 @@ def delete(email):
     return email if del_num == 1 else None
 
 
-def update(email: str, name: str, affiliation: str):
+def update(email: str, name: str, affiliation: str, bio: str = None):
     if not exists(email):
         raise ValueError(f'Updating non-existent person: {email=}')
     if is_valid_person(name, affiliation, email):
-        dbc.update(PEOPLE_COLLECT, {EMAIL: email},
-                   {NAME: name, AFFILIATION: affiliation})
+        update_fields = {NAME: name, AFFILIATION: affiliation}
+        if bio is not None:
+            update_fields[BIO] = bio
+        dbc.update(PEOPLE_COLLECT, {EMAIL: email}, update_fields)
         return email
 
 
@@ -107,7 +112,7 @@ def has_role(person: dict, role: str):
     return False
 
 
-MH_FIELDS = [NAME, AFFILIATION]
+MH_FIELDS = [NAME, AFFILIATION, BIO]
 
 
 def get_mh_fields(journal_code=None) -> list:
