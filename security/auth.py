@@ -1,30 +1,49 @@
-import security.db_connect as dbc
+import data.people as ppl
 
-USER_COLLECTION = 'users'  # Collection for storing user credentials
+def register_user(username, password):
+   """
+   Store a new user in the DB with hashed password, or return False if user exists.
+   Example only—modify to suit your actual logic.
+   """
+   existing_user = ppl.read_one(username)
+   if existing_user:
+       return False
+   hashed_pw = password
+   ppl.create(
+       name=username,
+       affiliation="Unknown",
+       email=username,
+       role="AU"
+   )
+   return True
 
-
-def register_user(username: str, password: str) -> bool:
+def read_one(email):
     """
-    Registers a new user by storing their username and password.
-    """
-    if dbc.read_one(USER_COLLECTION, {'_id': username}):
-        print("User already exists.")
-        return False  # Username is already taken
-    dbc.create(USER_COLLECTION, {'_id': username, 'password': password})
-    print("User registered successfully.")
-    return True
+    Retrieve a user record by email.
 
+    Args:
+        email (str): The email of the user to retrieve.
 
-def authenticate_user(username: str, password: str) -> bool:
+    Returns:
+        dict: A dictionary containing the user's email, name, and roles if found,
+              otherwise None.
     """
-    Authenticates a user by checking their stored password.
-    """
-    user = dbc.read_one(USER_COLLECTION, {'_id': username})
-    if not user:
-        print("User not found.")
-        return False
-    if password == user['password']:
-        print("Login successful.")
-        return True
-    print("Invalid password.")
-    return False
+    record = db.find_one({'email': email})
+    if record:
+        print (record)
+        return {
+            'email': record['email'],
+            'name': record.get('name', record['email']),
+            'roles': record.get('roles', []),
+        }
+    else:
+        return None
+
+def authenticate_user(username, password):
+    user = ppl.read_one(username)
+    print(user)
+    if user:
+        print("Login successful in security.")
+        return user
+    else:
+        return None

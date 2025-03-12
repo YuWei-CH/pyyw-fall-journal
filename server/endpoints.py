@@ -595,11 +595,12 @@ class Login(Resource):
         Authenticate a user.
         """
         data = request.get_json()
-        success = auth.authenticate_user(
-            data['username'],
-            data['password']
-        )
-        if success:
-            return {'message': 'Login successful'}, HTTPStatus.OK
+        user = auth.authenticate_user(data['username'], data['password'])
+        if user:
+            return {
+                'email': user['email'],
+                'name': user.get('name', user['email']),
+                'roles': user.get('roles', [])
+            }, HTTPStatus.OK
         else:
             return {'error': 'Invalid credentials'}, HTTPStatus.UNAUTHORIZED
