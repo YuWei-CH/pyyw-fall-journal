@@ -97,10 +97,12 @@ class JournalTitle(Resource):
         """
         Retrieve the journal title.
         """
-        return {TITLE_RESP: TITLE,
-                EDITOR_RESP: EDITOR,
-                DATE_RESP: DATE,
-                PUBLISHER_RESP: PUBLISHER}
+        return {
+            TITLE_RESP: TITLE,
+            EDITOR_RESP: EDITOR,
+            DATE_RESP: DATE,
+            PUBLISHER_RESP: PUBLISHER
+        }
 
 
 @api.route(ROLES_EP)
@@ -185,8 +187,7 @@ class PersonCreate(Resource):
             bio = request.json.get(ppl.BIO, "")
             ret = ppl.create(name, affiliation, email, role, bio)
         except Exception as err:
-            raise wz.NotAcceptable(f'Could not add person: '
-                                   f'{err=}')
+            raise wz.NotAcceptable(f'Could not add person: {err=}')
         return {
             MESSAGE: 'Person added!',
             RETURN: ret,
@@ -220,8 +221,7 @@ class PersonUpdate(Resource):
             bio = request.json.get(ppl.BIO)
             ret = ppl.update(email, name, affiliation, bio)
         except Exception as err:
-            raise wz.NotAcceptable(f'Could not update person: '
-                                   f'{err=}')
+            raise wz.NotAcceptable(f'Could not update person: {err=}')
         return {
             MESSAGE: f'{email} updated!',
             RETURN: ret,
@@ -319,8 +319,7 @@ class TextCreate(Resource):
             page_number = request.json.get(txt.PAGE_NUMBER)
             ret = txt.create(page_number, title, text)
         except Exception as err:
-            raise wz.NotAcceptable(f'Could not add text: '
-                                   f'{err=}')
+            raise wz.NotAcceptable(f'Could not add text: {err=}')
         return {
             MESSAGE: 'Text added!',
             RETURN: ret,
@@ -373,8 +372,7 @@ class TextUpdate(Resource):
             text = request.json.get(txt.TEXT)
             ret = txt.update(page_number, title, text)
         except Exception as err:
-            raise wz.NotAcceptable(f'Could not update text: '
-                                   f'{err=}')
+            raise wz.NotAcceptable(f'Could not update text: {err=}')
         return {
             MESSAGE: f'{page_number} updated!',
             RETURN: ret,
@@ -469,8 +467,7 @@ class ManuscriptCreate(Resource):
             ret = ms.create(title, author, author_email,
                             text, abstract, editor_email)
         except Exception as err:
-            raise wz.NotAcceptable(f'Could not add manuscript: '
-                                   f'{err=}')
+            raise wz.NotAcceptable(f'Could not add manuscript: {err=}')
         return {
             MESSAGE: 'Manuscript added!',
             RETURN: ret,
@@ -511,8 +508,7 @@ class ManuscriptUpdate(Resource):
             ret = ms.update(manu_id, title, author, author_email,
                             text, abstract, editor_email)
         except Exception as err:
-            raise wz.NotAcceptable(f'Could not update manuscript: '
-                                   f'{err=}')
+            raise wz.NotAcceptable(f'Could not update manuscript: {err=}')
         return {
             MESSAGE: f'{manu_id} updated!',
             RETURN: ret,
@@ -547,8 +543,7 @@ class ManuscriptUpdateState(Resource):
             else:
                 ret = ms.update_state(manu_id, action)
         except Exception as err:
-            raise wz.NotAcceptable(f'Could not update manuscript state: '
-                                   f'{err=}')
+            raise wz.NotAcceptable(f'Could not update manuscript state: {err=}')
         return {
             MESSAGE: f'{manu_id} state updated!',
             RETURN: ret,
@@ -561,10 +556,7 @@ class Register(Resource):
     This class handles user registration.
     """
     @api.response(HTTPStatus.CREATED, 'User registered successfully.')
-    @api.response(
-        HTTPStatus.CONFLICT,
-        'Username already exists.'
-    )
+    @api.response(HTTPStatus.CONFLICT, 'Username already exists.')
     @api.expect(AUTH_FIELDS)
     def post(self):
         """
