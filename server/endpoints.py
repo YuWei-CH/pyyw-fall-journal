@@ -543,7 +543,8 @@ class ManuscriptUpdateState(Resource):
             else:
                 ret = ms.update_state(manu_id, action)
         except Exception as err:
-            raise wz.NotAcceptable(f'Could not update manuscript state: {err=}')
+            raise wz.NotAcceptable(
+                f'Could not update manuscript state: {err=}')
         return {
             MESSAGE: f'{manu_id} state updated!',
             RETURN: ret,
