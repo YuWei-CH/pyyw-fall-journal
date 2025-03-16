@@ -567,7 +567,8 @@ class Register(Resource):
         success = auth.register_user(data['username'], data['password'])
         if success:
             return {
-                'message': 'User registered successfully'
+                'message': 'User registered successfully',
+                'username': data['username']
             }, HTTPStatus.CREATED
         else:
             return {
