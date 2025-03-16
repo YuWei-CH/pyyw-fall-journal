@@ -490,8 +490,8 @@ def test_register_user(mock_register):
     assert resp.status_code == HTTPStatus.CREATED
     resp_json = resp.get_json()
     assert 'message' in resp_json
-    assert 'username' in resp_json
-    assert resp_json['username'] == AUTH_TEST_DATA['username']
+    assert 'name' in resp_json
+    assert resp_json['name'] == AUTH_TEST_DATA['username']
 
 @patch('security.auth.register_user', autospec=True, return_value=False)
 def test_register_user_already_exists(mock_register):

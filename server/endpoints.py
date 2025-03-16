@@ -568,7 +568,7 @@ class Register(Resource):
         if success:
             return {
                 'message': 'User registered successfully',
-                'username': data['username']
+                'name': data['username']
             }, HTTPStatus.CREATED
         else:
             return {
