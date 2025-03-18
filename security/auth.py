@@ -1,30 +1,42 @@
-import security.db_connect as dbc
-
-USER_COLLECTION = 'users'  # Collection for storing user credentials
+import data.people as ppl
+import data.db_connect as dbc
 
 
 def register_user(username: str, password: str) -> bool:
     """
-    Registers a new user by storing their username and password.
+    If 'username' doesn't exist in 'people', create them with:
+      - email=username
+      - pw=password (plain text for demonstration)
+      - roles=['AU']  (default role)
+      - name=username, affiliation='Unknown'
+    Return True if created, False if user already existed.
     """
-    if dbc.read_one(USER_COLLECTION, {'_id': username}):
-        print("User already exists.")
-        return False  # Username is already taken
-    dbc.create(USER_COLLECTION, {'_id': username, 'password': password})
-    print("User registered successfully.")
+    existing_user = ppl.read_one(username)
+    if existing_user:
+        return False
+    ppl.create(
+        name=username,
+        affiliation="Unknown",
+        email=username,
+        role="AU",       # default role
+        bio="",          # no bio
+    )
+    dbc.update(
+        collection='people',
+        filters={'email': username},
+        update_dict={'pw': password}
+    )
     return True
 
 
-def authenticate_user(username: str, password: str) -> bool:
-    """
-    Authenticates a user by checking their stored password.
-    """
-    user = dbc.read_one(USER_COLLECTION, {'_id': username})
-    if not user:
-        print("User not found.")
-        return False
-    if password == user['password']:
-        print("Login successful.")
-        return True
-    print("Invalid password.")
-    return False
+def authenticate_user(username, password):
+    user_record = ppl.read_one(username)
+    if not user_record:
+        return None
+    if user_record.get('pw') == password:
+        return {
+            'email': user_record['email'],
+            'name': user_record.get('name', user_record['email']),
+            'roles': user_record.get('roles', []),
+        }
+    return None

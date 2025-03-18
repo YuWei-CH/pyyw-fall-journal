@@ -1,3 +1,4 @@
+from http import HTTPStatus
 from http.client import (
     BAD_REQUEST,
     FORBIDDEN,
@@ -470,3 +471,62 @@ def test_update_state_invalid_action(mock_update_state):
         content_type='application/json'
     )
     assert resp.status_code == NOT_ACCEPTABLE
+
+
+# Test data for authentication
+AUTH_TEST_DATA = {
+    'username': 'testuser',
+    'password': 'testpassword'
+}
+
+@patch('security.auth.register_user', autospec=True, return_value=True)
+def test_register_user(mock_register):
+    """Test successful user registration"""
+    resp = TEST_CLIENT.post(
+        f'{ep.AUTH_EP}/register',
+        data=json.dumps(AUTH_TEST_DATA),
+        content_type='application/json'
+    )
+    assert resp.status_code == HTTPStatus.CREATED
+    resp_json = resp.get_json()
+    assert 'message' in resp_json
+    assert 'name' in resp_json
+    assert resp_json['name'] == AUTH_TEST_DATA['username']
+
+@patch('security.auth.register_user', autospec=True, return_value=False)
+def test_register_user_already_exists(mock_register):
+    """Test registration with existing username"""
+    resp = TEST_CLIENT.post(
+        f'{ep.AUTH_EP}/register',
+        data=json.dumps(AUTH_TEST_DATA),
+        content_type='application/json'
+    )
+    assert resp.status_code == HTTPStatus.CONFLICT
+    resp_json = resp.get_json()
+    assert 'error' in resp_json
+
+@patch('security.auth.authenticate_user', autospec=True, 
+       return_value={'username': AUTH_TEST_DATA['username']})
+def test_login_user(mock_authenticate):
+    """Test successful user login"""
+    resp = TEST_CLIENT.post(
+        f'{ep.AUTH_EP}/login',
+        data=json.dumps(AUTH_TEST_DATA),
+        content_type='application/json'
+    )
+    assert resp.status_code == HTTPStatus.OK
+    resp_json = resp.get_json()
+    assert 'username' in resp_json
+    assert resp_json['username'] == AUTH_TEST_DATA['username']
+
+@patch('security.auth.authenticate_user', autospec=True, return_value=None)
+def test_login_user_invalid_credentials(mock_authenticate):
+    """Test login with invalid credentials"""
+    resp = TEST_CLIENT.post(
+        f'{ep.AUTH_EP}/login',
+        data=json.dumps(AUTH_TEST_DATA),
+        content_type='application/json'
+    )
+    assert resp.status_code == HTTPStatus.UNAUTHORIZED
+    resp_json = resp.get_json()
+    assert 'error' in resp_json
