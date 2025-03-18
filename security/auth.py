@@ -1,30 +1,37 @@
 import data.people as ppl
 import data.db_connect as dbc
+import data.roles as rls
+
+PASSWORD = 'pw'
 
 
-def register_user(username: str, password: str) -> bool:
+def register_user(username: str, password: str,
+                  name: str, affiliation: str = "Unknown",
+                  bio: str = "") -> bool:
     """
     If 'username' doesn't exist in 'people', create them with:
-      - email=username
-      - pw=password (plain text for demonstration)
-      - roles=['AU']  (default role)
-      - name=username, affiliation='Unknown'
+      - email = username
+      - pw = password (plain text for demonstration)
+      - roles = ['AU']  (default role)
+      - name = name
+      - affiliation = affiliation
+      - bio = bio
     Return True if created, False if user already existed.
     """
     existing_user = ppl.read_one(username)
     if existing_user:
         return False
     ppl.create(
-        name=username,
-        affiliation="Unknown",
+        name=name,
+        affiliation=affiliation,
         email=username,
-        role="AU",       # default role
-        bio="",          # no bio
+        role=rls.AUTHOR_CODE,       # default role
+        bio=bio,
     )
     dbc.update(
-        collection='people',
-        filters={'email': username},
-        update_dict={'pw': password}
+        collection=ppl.PEOPLE_COLLECT,
+        filters={ppl.EMAIL: username},
+        update_dict={PASSWORD: password}
     )
     return True
 
@@ -33,10 +40,10 @@ def authenticate_user(username, password):
     user_record = ppl.read_one(username)
     if not user_record:
         return None
-    if user_record.get('pw') == password:
+    if user_record.get(PASSWORD) == password:
         return {
-            'email': user_record['email'],
-            'name': user_record.get('name', user_record['email']),
-            'roles': user_record.get('roles', []),
+            ppl.EMAIL: user_record[ppl.EMAIL],
+            ppl.NAME: user_record.get(ppl.NAME, user_record[ppl.EMAIL]),
+            ppl.ROLES: user_record.get(ppl.ROLES, []),
         }
     return None

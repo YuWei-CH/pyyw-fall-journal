@@ -1,12 +1,11 @@
 import pytest
 import data.db_connect as dbc
+import data.people as ppl
 from security.auth import register_user, authenticate_user
 
 TEST_USER = "test_user@example.com"
 TEST_PASSWORD = "mypassword"
-
-ALT_USER = "alt_user@example.com"
-ALT_PASSWORD = "altpassword"
+TEST_NAME = "Test Name"
 
 INVALID_USER = "unknown_user@example.com"
 INVALID_PASSWORD = "wrongpassword"
@@ -19,10 +18,13 @@ def temp_user():
     then yields that user. After the test, it cleans up by deleting
     from the 'people' collection in 'journalDB'.
     """
-    created = register_user(TEST_USER, TEST_PASSWORD)
+    created = register_user(TEST_USER, TEST_PASSWORD, TEST_NAME)
     print("temp_user created:", created)
     yield TEST_USER
-    dbc.connect_db()['journalDB']['people'].delete_one({'email': TEST_USER})
+    try:
+        ppl.delete(TEST_USER)
+    except:
+        print('Person already deleted.')
 
 
 def test_register_user():
@@ -30,10 +32,11 @@ def test_register_user():
     Test registering a new user (ALT_USER).
     register_user should return True if success, False if user already exists.
     """
-    dbc.connect_db()['journalDB']['people'].delete_one({'email': ALT_USER})
-    created = register_user(ALT_USER, ALT_PASSWORD)
-    assert created is True, "Expected True on successful registration"
-    dbc.connect_db()['journalDB']['people'].delete_one({'email': ALT_USER})
+    assert not ppl.exists(TEST_USER)
+    status = register_user(TEST_USER, TEST_PASSWORD, TEST_NAME)
+    assert status is True, "Expected True on successful registration"
+    assert ppl.exists(TEST_USER)
+    ppl.delete(TEST_USER)
 
 
 def test_register_duplicate_user(temp_user):
@@ -41,7 +44,7 @@ def test_register_duplicate_user(temp_user):
     Ensure duplicate user registration fails.
     The fixture already created TEST_USER, so we expect False now.
     """
-    created_again = register_user(TEST_USER, TEST_PASSWORD)
+    created_again = register_user(temp_user, 'Not Care', 'Not Care')
     assert created_again is False, "Expected False when re-registering same user"
 
 

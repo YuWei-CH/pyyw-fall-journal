@@ -40,6 +40,7 @@ PUBLISHER_RESP = 'Publisher'
 
 MESSAGE = 'message'
 RETURN = 'return'
+ERROR = 'error'
 DELETED = 'Deleted'
 
 TEXT_EP = '/text'
@@ -54,10 +55,8 @@ REFEREE = 'referee'
 
 AUTH_EP = '/auth'
 
-AUTH_FIELDS = api.model('AuthFields', {
-    'username': fields.String(required=True),
-    'password': fields.String(required=True),
-})
+USERNAME = 'username'
+PASSWORD = 'password'
 
 
 @api.route(HELLO_EP)
@@ -551,6 +550,15 @@ class ManuscriptUpdateState(Resource):
         }
 
 
+AUTH_FIELDS = api.model('AuthFields', {
+    USERNAME: fields.String(required=True),
+    PASSWORD: fields.String(required=True),
+    ppl.NAME: fields.String(required=True),
+    ppl.AFFILIATION: fields.String(required=False),
+    ppl.BIO: fields.String(required=False),
+})
+
+
 @api.route(f'{AUTH_EP}/register')
 class Register(Resource):
     """
@@ -564,16 +572,28 @@ class Register(Resource):
         Register a new user.
         """
         data = request.get_json()
-        success = auth.register_user(data['username'], data['password'])
+        success = auth.register_user(
+            data[USERNAME],
+            data[PASSWORD],
+            data[ppl.NAME],
+            data.get(ppl.AFFILIATION, ''),
+            data.get(ppl.BIO, '')
+        )
         if success:
             return {
-                'message': 'User registered successfully',
-                'name': data['username']
+                MESSAGE: 'User registered successfully',
+                ppl.NAME: data[ppl.NAME]
             }, HTTPStatus.CREATED
         else:
             return {
-                'error': 'Username already exists'
+                ERROR: 'Username already exists'
             }, HTTPStatus.CONFLICT
+
+
+LOGIN_FIELDS = api.model('LoginFields', {
+    USERNAME: fields.String(required=True),
+    PASSWORD: fields.String(required=True),
+})
 
 
 @api.route(f'{AUTH_EP}/login')
@@ -583,14 +603,14 @@ class Login(Resource):
     """
     @api.response(HTTPStatus.OK, 'Login successful.')
     @api.response(HTTPStatus.UNAUTHORIZED, 'Invalid credentials.')
-    @api.expect(AUTH_FIELDS)
+    @api.expect(LOGIN_FIELDS)
     def post(self):
         """
         Authenticate a user.
         """
         data = request.get_json()
-        user = auth.authenticate_user(data['username'], data['password'])
+        user = auth.authenticate_user(data[USERNAME], data[PASSWORD])
         if user:
             return user, HTTPStatus.OK
         else:
-            return {'error': 'Invalid credentials'}, HTTPStatus.UNAUTHORIZED
+            return {ERROR: 'Invalid credentials'}, HTTPStatus.UNAUTHORIZED

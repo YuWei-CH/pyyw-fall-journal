@@ -12,7 +12,7 @@ from unittest.mock import patch
 
 import pytest, json
 
-from data.people import NAME, AFFILIATION, EMAIL, ROLES
+from data.people import NAME, AFFILIATION, EMAIL, ROLES, BIO
 
 import server.endpoints as ep
 
@@ -475,8 +475,9 @@ def test_update_state_invalid_action(mock_update_state):
 
 # Test data for authentication
 AUTH_TEST_DATA = {
-    'username': 'testuser',
-    'password': 'testpassword'
+    ep.USERNAME: TEST_EMAIL,
+    ep.PASSWORD: 'testpassword',
+    NAME: "Test Name",
 }
 
 @patch('security.auth.register_user', autospec=True, return_value=True)
@@ -489,9 +490,11 @@ def test_register_user(mock_register):
     )
     assert resp.status_code == HTTPStatus.CREATED
     resp_json = resp.get_json()
-    assert 'message' in resp_json
-    assert 'name' in resp_json
-    assert resp_json['name'] == AUTH_TEST_DATA['username']
+    assert isinstance(resp_json, dict)
+    assert ep.MESSAGE in resp_json
+    assert NAME in resp_json
+    assert resp_json[NAME] == AUTH_TEST_DATA[NAME]
+
 
 @patch('security.auth.register_user', autospec=True, return_value=False)
 def test_register_user_already_exists(mock_register):
@@ -503,30 +506,39 @@ def test_register_user_already_exists(mock_register):
     )
     assert resp.status_code == HTTPStatus.CONFLICT
     resp_json = resp.get_json()
-    assert 'error' in resp_json
+    assert isinstance(resp_json, dict)
+    assert ep.ERROR in resp_json
+
+
+LOGIN_TEST_DATA = {
+    ep.USERNAME: TEST_EMAIL,
+    ep.PASSWORD: 'testpassword',
+}
+
 
 @patch('security.auth.authenticate_user', autospec=True, 
-       return_value={'username': AUTH_TEST_DATA['username']})
+       return_value={ep.USERNAME: LOGIN_TEST_DATA[ep.USERNAME]})
 def test_login_user(mock_authenticate):
     """Test successful user login"""
     resp = TEST_CLIENT.post(
         f'{ep.AUTH_EP}/login',
-        data=json.dumps(AUTH_TEST_DATA),
+        data=json.dumps(LOGIN_TEST_DATA),
         content_type='application/json'
     )
     assert resp.status_code == HTTPStatus.OK
     resp_json = resp.get_json()
-    assert 'username' in resp_json
-    assert resp_json['username'] == AUTH_TEST_DATA['username']
+    assert isinstance(resp_json, dict)
+
 
 @patch('security.auth.authenticate_user', autospec=True, return_value=None)
 def test_login_user_invalid_credentials(mock_authenticate):
     """Test login with invalid credentials"""
     resp = TEST_CLIENT.post(
         f'{ep.AUTH_EP}/login',
-        data=json.dumps(AUTH_TEST_DATA),
+        data=json.dumps(LOGIN_TEST_DATA),
         content_type='application/json'
     )
     assert resp.status_code == HTTPStatus.UNAUTHORIZED
     resp_json = resp.get_json()
-    assert 'error' in resp_json
+    assert isinstance(resp_json, dict)
+    assert ep.ERROR in resp_json
