@@ -251,7 +251,8 @@ def exists(manu_id: str) -> bool:
 
 def is_valid_manuscript(title: str, author: str,
                         author_email: str, text: str,
-                        abstract: str, editor_email: str) -> bool:
+                        abstract: str, editor_email: str,
+                        manu_id: str = None) -> bool:
     if not ppl.is_valid_email(author_email):
         raise ValueError(f'Author email invalid: {author_email}')
     if not ppl.is_valid_email(editor_email):
@@ -264,10 +265,17 @@ def is_valid_manuscript(title: str, author: str,
         raise ValueError("Text cannot be blank")
     if not abstract.strip():
         raise ValueError("Abstract cannot be blank")
-    existing_manuscript = dbc.read_one(MANUSCRIPTS_COLLECT,
-                                       {TITLE: title,
-                                        AUTHOR_EMAIL: author_email})
+
+    # Check for duplicate, but exclude the manuscript being updated
+    query = {TITLE: title, AUTHOR_EMAIL: author_email}
+    existing_manuscript = dbc.read_one(MANUSCRIPTS_COLLECT, query)
+
     if existing_manuscript:
+        # If we're updating (manu_id is provided)
+        # and the existing manuscript is the same one,
+        # then it's not a duplicate
+        if manu_id and str(existing_manuscript[MANU_ID]) == manu_id:
+            return True
         raise ValueError(f"A manuscript with title '{title}' and "
                          f"author email '{author_email}' already exists.")
     return True
@@ -306,7 +314,7 @@ def update(manu_id: str, title: str, author: str, author_email: str,
     if not exists(manu_id):
         raise ValueError(f'Updating non-existent manuscript: {manu_id=}')
     if is_valid_manuscript(title, author, author_email, text,
-                           abstract, editor_email):
+                           abstract, editor_email, manu_id):
         updated_fields = {
             TITLE: title,
             AUTHOR: author,
