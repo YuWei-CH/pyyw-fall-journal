@@ -614,3 +614,51 @@ class Login(Resource):
             return user, HTTPStatus.OK
         else:
             return {ERROR: 'Invalid credentials'}, HTTPStatus.UNAUTHORIZED
+
+
+@api.route(f'{MANUSCRIPT_EP}/valid_actions/<state>')
+class ManuscriptValidActions(Resource):
+    """
+    This class handles getting valid actions for a given manuscript state.
+    """
+    def get(self, state):
+        """
+        Get valid actions for a given manuscript state.
+        """
+        try:
+            valid_actions = ms.get_valid_actions_by_state(state)
+            return {"valid_actions": list(valid_actions)}
+        except KeyError:
+            raise wz.NotFound(f'Invalid state: {state}')
+        except Exception as err:
+            raise wz.NotAcceptable(f'Could not get valid actions: {err=}')
+
+
+@api.route(f'{MANUSCRIPT_EP}/editor_actions')
+class ManuscriptEditorActions(Resource):
+    """
+    This class handles getting all possible editor actions.
+    """
+    def get(self):
+        """
+        Get all possible editor actions.
+        """
+        # Editor actions: can be taken in SUBMITTED and EDITOR_REV states
+        editor_actions = set()
+        editor_actions.update(ms.get_valid_actions_by_state(ms.SUBMITTED))
+        editor_actions.update(ms.get_valid_actions_by_state(ms.EDITOR_REV))
+        return {"editor_actions": list(editor_actions)}
+
+
+@api.route(f'{MANUSCRIPT_EP}/referee_actions')
+class ManuscriptRefereeActions(Resource):
+    """
+    This class handles getting all possible referee actions.
+    """
+    def get(self):
+        """
+        Get all possible referee actions.
+        """
+        # Referee actions are those that can be taken in IN_REF_REV state
+        referee_actions = set(ms.get_valid_actions_by_state(ms.IN_REF_REV))
+        return {"referee_actions": list(referee_actions)}

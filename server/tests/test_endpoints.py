@@ -542,3 +542,83 @@ def test_login_user_invalid_credentials(mock_authenticate):
     resp_json = resp.get_json()
     assert isinstance(resp_json, dict)
     assert ep.ERROR in resp_json
+
+
+@patch('data.manuscript.get_valid_actions_by_state', autospec=True,
+       return_value={ms.ASSIGN_REF, ms.REJECT})
+def test_get_valid_actions(mock_get_actions):
+    """
+    Test getting valid actions for a given state.
+    """
+    resp = TEST_CLIENT.get(f'{ep.MANUSCRIPT_EP}/valid_actions/{ms.SUBMITTED}')
+    assert resp.status_code == OK
+    resp_json = resp.get_json()
+    assert isinstance(resp_json, dict)
+    assert "valid_actions" in resp_json
+    assert isinstance(resp_json["valid_actions"], list)
+    assert len(resp_json["valid_actions"]) > 0
+    assert all(isinstance(action, str) for action in resp_json["valid_actions"])
+
+
+@patch('data.manuscript.get_valid_actions_by_state', autospec=True,
+       side_effect=KeyError("Invalid state"))
+def test_get_valid_actions_invalid_state(mock_get_actions):
+    """
+    Test getting valid actions for an invalid state.
+    """
+    resp = TEST_CLIENT.get(f'{ep.MANUSCRIPT_EP}/valid_actions/invalid_state')
+    assert resp.status_code == NOT_FOUND
+
+
+@patch('data.manuscript.get_valid_actions_by_state', autospec=True,
+       side_effect=ValueError("Mocked Exception"))
+def test_get_valid_actions_error(mock_get_actions):
+    """
+    Test getting valid actions when an error occurs.
+    """
+    resp = TEST_CLIENT.get(f'{ep.MANUSCRIPT_EP}/valid_actions/{ms.SUBMITTED}')
+    assert resp.status_code == NOT_ACCEPTABLE
+
+
+@patch('data.manuscript.get_valid_actions_by_state', autospec=True)
+def test_get_editor_actions(mock_get_actions):
+    """
+    Test getting all possible editor actions.
+    """
+    # Mock the return values for both states
+    mock_get_actions.side_effect = [
+        {ms.ASSIGN_REF, ms.REJECT},  # SUBMITTED state
+        {ms.ACCEPT}  # EDITOR_REV state
+    ]
+    
+    resp = TEST_CLIENT.get(f'{ep.MANUSCRIPT_EP}/editor_actions')
+    assert resp.status_code == OK
+    resp_json = resp.get_json()
+    assert isinstance(resp_json, dict)
+    assert "editor_actions" in resp_json
+    assert isinstance(resp_json["editor_actions"], list)
+    assert len(resp_json["editor_actions"]) > 0
+    assert all(isinstance(action, str) for action in resp_json["editor_actions"])
+    # Verify that actions from both states are included
+    assert ms.ASSIGN_REF in resp_json["editor_actions"]
+    assert ms.ACCEPT in resp_json["editor_actions"]
+
+
+@patch('data.manuscript.get_valid_actions_by_state', autospec=True,
+       return_value={ms.ACCEPT, ms.REJECT, ms.ACCEPT_WITH_REVISIONS})
+def test_get_referee_actions(mock_get_actions):
+    """
+    Test getting all possible referee actions.
+    """
+    resp = TEST_CLIENT.get(f'{ep.MANUSCRIPT_EP}/referee_actions')
+    assert resp.status_code == OK
+    resp_json = resp.get_json()
+    assert isinstance(resp_json, dict)
+    assert "referee_actions" in resp_json
+    assert isinstance(resp_json["referee_actions"], list)
+    assert len(resp_json["referee_actions"]) > 0
+    assert all(isinstance(action, str) for action in resp_json["referee_actions"])
+    # Verify that referee-specific actions are included
+    assert ms.ACCEPT in resp_json["referee_actions"]
+    assert ms.REJECT in resp_json["referee_actions"]
+    assert ms.ACCEPT_WITH_REVISIONS in resp_json["referee_actions"]
