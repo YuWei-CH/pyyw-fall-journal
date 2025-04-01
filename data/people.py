@@ -164,6 +164,14 @@ def delete_role(email: str, role: str):
     return email
 
 
+def get_all_people():
+    people = read()
+    result = []
+    for person in people.values():
+        result.append(f"{person['name']} ({person['email']})")
+    return result
+
+
 def main():
     print(get_masthead())
 

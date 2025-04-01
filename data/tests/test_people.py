@@ -117,6 +117,13 @@ def test_read(temp_person):
         assert ppl.ROLES in person
 
 
+def test_get_all_people(temp_person):
+    people = ppl.get_all_people()
+    assert isinstance(people, list)
+    assert len(people) > 0
+    assert all(isinstance(person, str) for person in people)
+
+
 def test_read_one(temp_person):
     assert ppl.read_one(temp_person) is not None
 
