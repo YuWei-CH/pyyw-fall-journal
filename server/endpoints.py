@@ -129,6 +129,15 @@ class People(Resource):
         return ppl.read()
 
 
+@api.route(f'{PEOPLE_EP}/get_all_people')
+class PeopleGetAll(Resource):
+    def get(self):
+        """
+        Retrieve all people's name and email in a list.
+        """
+        return ppl.get_all_people()
+
+
 @api.route(f'{PEOPLE_EP}/<email>')
 class Person(Resource):
     """

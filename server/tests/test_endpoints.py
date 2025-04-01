@@ -72,6 +72,17 @@ def test_read_people(mock_read):
         assert NAME in person
 
 
+@patch('data.people.get_all_people', autospec=True,
+        return_value=["Name (email)"])
+def test_get_all_people(mock_get_all_people):
+    resp = TEST_CLIENT.get(f'{ep.PEOPLE_EP}/get_all_people')
+    assert resp.status_code == OK
+    resp_json = resp.get_json()
+    assert isinstance(resp_json, list)
+    for item in resp_json:
+        assert isinstance(item, str)
+
+
 @patch('data.people.read_one', autospec=True,
        return_value={NAME: 'Joe Schmoe'})
 def test_read_one_person(mock_read):
