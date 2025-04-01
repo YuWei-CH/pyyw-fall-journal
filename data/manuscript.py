@@ -3,6 +3,7 @@ import data.people as ppl
 from bson import ObjectId
 
 MANUSCRIPTS_COLLECT = 'manuscripts'
+client = dbc.connect_db()
 
 # Fields
 MANU_ID = '_id'
@@ -353,6 +354,21 @@ def update_state(manu_id: str, action: str, **kwargs):
         },
     )
     return manu_id
+
+
+def search_by_title(title: str) -> dict:
+    """
+    Search for manuscripts by title (case-insensitive partial match).
+    Returns a dictionary of matching manuscripts keyed by their title.
+    """
+    manuscripts = {}
+    if not title.strip():
+        return manuscripts
+    all_manuscripts = dbc.read(MANUSCRIPTS_COLLECT, no_id=False)
+    for manuscript in all_manuscripts:
+        if title.lower() in manuscript[TITLE].lower():
+            manuscripts[manuscript[TITLE]] = manuscript
+    return manuscripts
 
 
 def main():

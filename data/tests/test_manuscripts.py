@@ -318,3 +318,44 @@ def test_update_state_history_tracking(temp_manuscript):
     updated_manuscript = ms.read_one(temp_manuscript)
     assert ms.IN_REF_REV in updated_manuscript[ms.HISTORY]
     assert len(updated_manuscript[ms.HISTORY]) == len(initial_history) + 1
+
+
+def test_search_by_title_exact_match(temp_manuscript):
+    """Test searching for a manuscript with exact title match."""
+    manuscripts = ms.search_by_title(TEMP_TITLE)
+    assert isinstance(manuscripts, dict)
+    assert len(manuscripts) == 1
+    assert TEMP_TITLE in manuscripts
+    assert manuscripts[TEMP_TITLE][ms.TITLE] == TEMP_TITLE
+
+
+def test_search_by_title_case_insensitive(temp_manuscript):
+    """Test searching for a manuscript with case-insensitive match."""
+    manuscripts = ms.search_by_title(TEMP_TITLE.lower())
+    assert isinstance(manuscripts, dict)
+    assert len(manuscripts) == 1
+    assert TEMP_TITLE in manuscripts
+    assert manuscripts[TEMP_TITLE][ms.TITLE] == TEMP_TITLE
+
+
+def test_search_by_title_partial_match(temp_manuscript):
+    """Test searching for a manuscript with partial title match."""
+    manuscripts = ms.search_by_title("Temp")
+    assert isinstance(manuscripts, dict)
+    assert len(manuscripts) == 1
+    assert TEMP_TITLE in manuscripts
+    assert manuscripts[TEMP_TITLE][ms.TITLE] == TEMP_TITLE
+
+
+def test_search_by_title_no_match():
+    """Test searching for a manuscript with no matches."""
+    manuscripts = ms.search_by_title("Nonexistent Manuscript Title")
+    assert isinstance(manuscripts, dict)
+    assert len(manuscripts) == 0
+
+
+def test_search_by_title_empty_string():
+    """Test searching for a manuscript with empty string."""
+    manuscripts = ms.search_by_title("")
+    assert isinstance(manuscripts, dict)
+    assert len(manuscripts) == 0

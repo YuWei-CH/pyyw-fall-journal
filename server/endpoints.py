@@ -401,8 +401,13 @@ class Manuscripts(Resource):
     """
     def get(self):
         """
-        Retrieve all manuscripts.
+        Retrieve all manuscripts or search by title.
+        If title parameter is provided, returns matching manuscripts.
+        Otherwise returns all manuscripts.
         """
+        title = request.args.get('title')
+        if title:
+            return ms.search_by_title(title)
         return ms.read()
 
 

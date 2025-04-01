@@ -622,3 +622,44 @@ def test_get_referee_actions(mock_get_actions):
     assert ms.ACCEPT in resp_json["referee_actions"]
     assert ms.REJECT in resp_json["referee_actions"]
     assert ms.ACCEPT_WITH_REVISIONS in resp_json["referee_actions"]
+
+
+@patch('data.manuscript.search_by_title', autospec=True,
+       return_value={'Test Manuscript': {'title': 'Test Manuscript'}})
+def test_search_manuscripts_by_title(mock_search):
+    """
+    Test searching manuscripts by title.
+    """
+    resp = TEST_CLIENT.get(f'{ep.MANUSCRIPT_EP}?title=Test')
+    assert resp.status_code == OK
+    resp_json = resp.get_json()
+    assert isinstance(resp_json, dict)
+    assert 'Test Manuscript' in resp_json
+    assert resp_json['Test Manuscript']['title'] == 'Test Manuscript'
+
+
+@patch('data.manuscript.search_by_title', autospec=True,
+       return_value={})
+def test_search_manuscripts_no_results(mock_search):
+    """
+    Test searching manuscripts when no results are found.
+    """
+    resp = TEST_CLIENT.get(f'{ep.MANUSCRIPT_EP}?title=Nonexistent')
+    assert resp.status_code == OK
+    resp_json = resp.get_json()
+    assert isinstance(resp_json, dict)
+    assert len(resp_json) == 0
+
+
+@patch('data.manuscript.read', autospec=True,
+       return_value={'All Manuscripts': {'title': 'All Manuscripts'}})
+def test_get_all_manuscripts_no_search(mock_read):
+    """
+    Test getting all manuscripts when no search term is provided.
+    """
+    resp = TEST_CLIENT.get(ep.MANUSCRIPT_EP)
+    assert resp.status_code == OK
+    resp_json = resp.get_json()
+    assert isinstance(resp_json, dict)
+    assert 'All Manuscripts' in resp_json
+    assert resp_json['All Manuscripts']['title'] == 'All Manuscripts'
