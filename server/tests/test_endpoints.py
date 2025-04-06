@@ -23,6 +23,10 @@ import data.roles as rls
 from data.text import *
 import data.manuscript as ms
 
+from unittest.mock import patch
+from datetime import datetime
+import platform
+
 TEST_MANU_ID = "test_manu_id"
 TEST_EMAIL = "testEmail@gmail.com"
 TEST_TITLE = "Test Manuscript Title"
@@ -674,3 +678,25 @@ def test_get_all_manuscripts_no_search(mock_read):
     assert isinstance(resp_json, dict)
     assert 'All Manuscripts' in resp_json
     assert resp_json['All Manuscripts']['title'] == 'All Manuscripts'
+
+
+def test_dev_status():
+    resp = TEST_CLIENT.get('/dev/status')
+    assert resp.status_code == HTTPStatus.OK
+    resp_json = resp.get_json()
+    assert isinstance(resp_json, dict)
+    assert resp_json['status'] == 'running'
+    assert 'server_time' in resp_json
+    assert resp_json['environment'] == 'development'
+    assert resp_json['version'] == '1.0.0'
+
+
+def test_dev_config():
+    resp = TEST_CLIENT.get('/dev/config')
+    assert resp.status_code == HTTPStatus.OK
+    resp_json = resp.get_json()
+    assert isinstance(resp_json, dict)
+    assert resp_json['environment'] == 'development'
+    assert resp_json['debug_mode'] is True
+    assert resp_json['python_version'] == platform.python_version()
+    assert resp_json['maintainer'] == 'Chelsea Chen'

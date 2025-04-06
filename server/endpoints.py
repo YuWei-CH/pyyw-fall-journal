@@ -16,6 +16,18 @@ import data.text as txt
 import data.manuscript as ms
 import security.auth as auth
 
+from datetime import datetime
+import platform
+from flask import jsonify
+
+# Config for developer endpoints
+CONFIG = {
+    "ENVIRONMENT": "development",
+    "DEBUG": True,
+    "VERSION": "1.0.0",
+    "MAINTAINER": "Chelsea Chen",
+}
+
 app = Flask(__name__)
 CORS(app)
 api = Api(app)
@@ -57,6 +69,37 @@ AUTH_EP = '/auth'
 
 USERNAME = 'username'
 PASSWORD = 'password'
+
+DEV_EP = '/dev'
+
+
+@api.route(f'{DEV_EP}/status')
+class DevStatus(Resource):
+    """Endpoint for checking basic server status."""
+    @api.response(HTTPStatus.OK, 'Server status retrieved successfully.')
+    def get(self):
+        status_info = {
+            'server_time': datetime.now().isoformat(),
+            'status': 'running',
+            'environment': CONFIG['ENVIRONMENT'],
+            'version': CONFIG['VERSION'],
+        }
+        return jsonify(status_info)
+
+
+@api.route(f'{DEV_EP}/config')
+class DevConfig(Resource):
+    """Endpoint for retrieving internal server configuration."""
+    @api.response(HTTPStatus.OK,
+                  'Server configuration retrieved successfully.')
+    def get(self):
+        config_info = {
+            'environment': CONFIG['ENVIRONMENT'],
+            'debug_mode': CONFIG['DEBUG'],
+            'python_version': platform.python_version(),
+            'maintainer': CONFIG['MAINTAINER'],
+        }
+        return jsonify(config_info)
 
 
 @api.route(HELLO_EP)
