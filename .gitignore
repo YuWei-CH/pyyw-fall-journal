@@ -116,6 +116,7 @@ venv/
 ENV/
 env.bak/
 venv.bak/
+fresh_venv
 
 # Spyder project settings
 .spyderproject
@@ -146,3 +147,5 @@ DebugNotes.md
 fix_formatting.py
 
 .DS_Store
+
+swe.sh
