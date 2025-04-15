@@ -4,23 +4,12 @@ import data.roles as rls
 
 PASSWORD = 'pw'
 
-
-def register_user(username: str, password: str,
-                  name: str, affiliation: str = "Unknown",
-                  bio: str = "") -> bool:
-    """
-    If 'username' doesn't exist in 'people', create them with:
-      - email = username
-      - pw = password (plain text for demonstration)
-      - roles = ['AU']  (default role)
-      - name = name
-      - affiliation = affiliation
-      - bio = bio
-    Return True if created, False if user already existed.
-    """
+def register_user(username: str, password: str, name: str,
+                  affiliation: str = "Unknown", bio: str = "") -> bool:
     existing_user = ppl.read_one(username)
     if existing_user:
         return False
+
     ppl.create(
         name=name,
         affiliation=affiliation,
@@ -34,7 +23,6 @@ def register_user(username: str, password: str,
         update_dict={PASSWORD: password}
     )
     return True
-
 
 def authenticate_user(username, password):
     user_record = ppl.read_one(username)

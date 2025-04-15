@@ -20,6 +20,9 @@ from datetime import datetime
 import platform
 from flask import jsonify
 
+from security.security import requires_permission
+from flask_restx import Resource
+
 # Config for developer endpoints
 CONFIG = {
     "ENVIRONMENT": "development",
@@ -198,6 +201,7 @@ class Person(Resource):
 
     @api.response(HTTPStatus.OK, 'Success.')
     @api.response(HTTPStatus.NOT_FOUND, 'No such person.')
+    @requires_permission(feature='people', action='delete')
     def delete(self, email):
         """
         Delete a person by email.
@@ -318,12 +322,11 @@ class PersonDeleteRole(Resource):
     @api.response(HTTPStatus.NOT_ACCEPTABLE, 'Not acceptable. ')
     @api.expect(PEOPLE_ROLE_UPDATE_FLDS)
     def delete(self):
-        """
-        Delete people role.
-        """
         try:
-            email = request.json.get(ppl.EMAIL)
-            role = request.json.get(ROLE)
+            # Use force=True and silent=True so the JSON is parsed correctly
+            data = request.get_json(force=True, silent=True)
+            email = data.get(ppl.EMAIL)
+            role = data.get(ROLE)
             ret = ppl.delete_role(email, role)
         except Exception as err:
             raise wz.NotAcceptable(f'Could not delete role: {err}')
@@ -331,7 +334,6 @@ class PersonDeleteRole(Resource):
             MESSAGE: f'{role} deleted for {email}!',
             RETURN: ret,
         }
-
 
 @api.route(TEXT_EP)
 class Texts(Resource):
@@ -618,34 +620,35 @@ AUTH_FIELDS = api.model('AuthFields', {
 
 @api.route(f'{AUTH_EP}/register')
 class Register(Resource):
-    """
-    This class handles user registration.
-    """
     @api.response(HTTPStatus.CREATED, 'User registered successfully.')
     @api.response(HTTPStatus.CONFLICT, 'Username already exists.')
     @api.expect(AUTH_FIELDS)
     def post(self):
-        """
-        Register a new user.
-        """
-        data = request.get_json()
-        success = auth.register_user(
-            data[USERNAME],
-            data[PASSWORD],
-            data[ppl.NAME],
-            data.get(ppl.AFFILIATION, ''),
-            data.get(ppl.BIO, '')
-        )
-        if success:
-            return {
-                MESSAGE: 'User registered successfully',
-                ppl.NAME: data[ppl.NAME]
-            }, HTTPStatus.CREATED
-        else:
-            return {
-                ERROR: 'Username already exists'
-            }, HTTPStatus.CONFLICT
+        try:
+            data = request.get_json()
+            print('Received register data:', data)
 
+            success = auth.register_user(
+                data[USERNAME],
+                data[PASSWORD],
+                data[ppl.NAME],
+                data.get(ppl.AFFILIATION, ''),
+                data.get(ppl.BIO, '')
+            )
+
+            if success:
+                return {
+                    MESSAGE: 'User registered successfully',
+                    ppl.NAME: data[ppl.NAME]
+                }, HTTPStatus.CREATED
+            else:
+                return {
+                    ERROR: 'Username already exists'
+                }, HTTPStatus.CONFLICT
+
+        except Exception as e:
+            print(f'Error in registration: {e}')
+            raise wz.InternalServerError(str(e))
 
 LOGIN_FIELDS = api.model('LoginFields', {
     USERNAME: fields.String(required=True),
@@ -719,3 +722,11 @@ class ManuscriptRefereeActions(Resource):
         # Referee actions are those that can be taken in IN_REF_REV state
         referee_actions = set(ms.get_valid_actions_by_state(ms.IN_REF_REV))
         return {"referee_actions": list(referee_actions)}
+
+
+@api.route('/dev/editor_dashboard')
+class EditorDashboardPermission(Resource):
+    @requires_permission('editor_dashboard', 'access', roles=['ED', 'MD'])
+    def get(self):
+        return {'message': 'Authorized'}, 200
+    

@@ -1,4 +1,7 @@
 from functools import wraps
+from flask import request
+from werkzeug.exceptions import Forbidden
+import data.people as ppl
 
 # import data.db_connect as dbc
 
@@ -189,3 +192,28 @@ def is_permitted(feature_name: str, action: str,
         if not CHECK_FUNCS[check](user_id, **kwargs):
             return False
     return True
+
+
+def requires_permission(feature: str, action: str, roles=None):
+    def decorator(fn):
+        @wraps(fn)
+        def wrapper(*args, **kwargs):
+            user_info = request.get_json(force=True, silent=True) or request.args
+            user_id = user_info.get('email') or user_info.get('user_id')
+            login_key = user_info.get('login_key')
+            
+            if not user_id:
+                raise Forbidden('Missing user ID.')
+                
+            user_record = ppl.read_one(user_id)
+            if not user_record:
+                raise Forbidden('User not found.')
+            
+            user_roles = user_record.get('roles', [])
+            if roles and not set(user_roles).intersection(set(roles)):
+                raise Forbidden(f'User {user_id} lacks required roles: {roles}')
+            
+            # (Optional: Validate login_key if necessary)
+            return fn(*args, **kwargs)
+        return wrapper
+    return decorator

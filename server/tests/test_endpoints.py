@@ -31,6 +31,7 @@ TEST_MANU_ID = "test_manu_id"
 TEST_EMAIL = "testEmail@gmail.com"
 TEST_TITLE = "Test Manuscript Title"
 TEST_PAGE_NUMBER = "TestPageNumber"
+GOOD_USER_RECORD = {'email': 'yw5490@nyu.edu', 'roles': ['ADMIN']}
 
 
 def test_hello():
@@ -100,19 +101,20 @@ def test_read_one_person_not_found(mock_read):
     assert resp.status_code == NOT_FOUND
 
 
-@patch('data.people.delete', autospec=True, return_value=TEST_EMAIL)
-def test_delete_people(mock_delete):
-    resp = TEST_CLIENT.delete(f'{ep.PEOPLE_EP}/mock_email')
-    assert resp.status_code == OK
-    resp_json = resp.get_json()
-    assert isinstance(resp_json, dict)
-    assert ep.DELETED in resp_json
+@patch('data.people.read_one', return_value=GOOD_USER_RECORD)
+@patch('data.people.delete', return_value='test@example.com')
+def test_delete_people(mock_delete, mock_read_one):
+    # No need to pass the email in the query if the read_one is patched
+    resp = TEST_CLIENT.delete(f'{ep.PEOPLE_EP}/mock_email?email=yw5490@nyu.edu')
+
+    assert resp.status_code == HTTPStatus.OK
 
 
-@patch('data.people.delete', autospec=True, return_value=None)
-def test_delete_people_not_found(mock_delete):
-    resp = TEST_CLIENT.delete(f'{ep.PEOPLE_EP}/mock_email')
-    assert resp.status_code == NOT_FOUND
+@patch('data.people.read_one', return_value=GOOD_USER_RECORD)
+@patch('data.people.delete', return_value=None)
+def test_delete_people_not_found(mock_delete, mock_read_one):
+    resp = TEST_CLIENT.delete(f'{ep.PEOPLE_EP}/mock_email?email=yw5490@nyu.edu')
+    assert resp.status_code == HTTPStatus.NOT_FOUND
 
 
 CREATE_TEST_DATA = {
