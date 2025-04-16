@@ -4,7 +4,7 @@ The endpoint called `endpoints` will return all available endpoints.
 """
 from http import HTTPStatus
 
-from flask import Flask, request
+from flask import Flask, request, jsonify
 from flask_restx import Resource, Api, fields  # Namespace, fields
 from flask_cors import CORS
 
@@ -18,8 +18,6 @@ import security.auth as auth
 
 from datetime import datetime
 import platform
-from flask import jsonify
-
 from security.security import requires_permission
 
 # Config for developer endpoints
@@ -736,6 +734,6 @@ class ManuscriptRefereeActions(Resource):
 
 @api.route('/dev/editor_dashboard')
 class EditorDashboardPermission(Resource):
-    @requires_permission('editor_dashboard', 'access', roles=['ED', 'MD'])
+    @requires_permission('editor_dashboard', 'access', roles=['ED', 'ME'])
     def get(self):
-        return {'message': 'Authorized'}, 200
+        return {'message': 'Authorized'}, HTTPStatus.OK
