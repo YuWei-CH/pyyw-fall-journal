@@ -4,8 +4,10 @@ import data.roles as rls
 
 PASSWORD = 'pw'
 
+
 def register_user(username: str, password: str, name: str,
-                  affiliation: str = "Unknown", bio: str = "") -> bool:
+                  affiliation: str = "Unknown",
+                  role: str = rls.AUTHOR_CODE, bio: str = "") -> bool:
     existing_user = ppl.read_one(username)
     if existing_user:
         return False
@@ -14,7 +16,7 @@ def register_user(username: str, password: str, name: str,
         name=name,
         affiliation=affiliation,
         email=username,
-        role=rls.AUTHOR_CODE,       # default role
+        role=role,
         bio=bio,
     )
     dbc.update(
@@ -23,6 +25,7 @@ def register_user(username: str, password: str, name: str,
         update_dict={PASSWORD: password}
     )
     return True
+
 
 def authenticate_user(username, password):
     user_record = ppl.read_one(username)

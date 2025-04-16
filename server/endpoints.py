@@ -21,7 +21,6 @@ import platform
 from flask import jsonify
 
 from security.security import requires_permission
-from flask_restx import Resource
 
 # Config for developer endpoints
 CONFIG = {
@@ -335,6 +334,7 @@ class PersonDeleteRole(Resource):
             RETURN: ret,
         }
 
+
 @api.route(TEXT_EP)
 class Texts(Resource):
     """
@@ -628,13 +628,22 @@ class Register(Resource):
             data = request.get_json()
             print('Received register data:', data)
 
-            success = auth.register_user(
-                data[USERNAME],
-                data[PASSWORD],
-                data[ppl.NAME],
-                data.get(ppl.AFFILIATION, ''),
-                data.get(ppl.BIO, '')
-            )
+            kwargs = {
+                "username": data[USERNAME],
+                "password": data[PASSWORD],
+                "name": data[ppl.NAME],
+            }
+
+            if ppl.AFFILIATION in data:
+                kwargs["affiliation"] = data[ppl.AFFILIATION]
+
+            if ROLE in data:
+                kwargs["role"] = data[ROLE]
+
+            if ppl.BIO in data:
+                kwargs["bio"] = data[ppl.BIO]
+
+            success = auth.register_user(**kwargs)
 
             if success:
                 return {
@@ -649,6 +658,7 @@ class Register(Resource):
         except Exception as e:
             print(f'Error in registration: {e}')
             raise wz.InternalServerError(str(e))
+
 
 LOGIN_FIELDS = api.model('LoginFields', {
     USERNAME: fields.String(required=True),
@@ -729,4 +739,3 @@ class EditorDashboardPermission(Resource):
     @requires_permission('editor_dashboard', 'access', roles=['ED', 'MD'])
     def get(self):
         return {'message': 'Authorized'}, 200
-    
