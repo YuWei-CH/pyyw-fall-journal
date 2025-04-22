@@ -207,7 +207,8 @@ def requires_permission(feature: str, action: str, roles=None):
 
             if not uid:
                 body = request.get_json(force=True, silent=True) or {}
-                uid = body.get('caller_id') or body.get(ppl.ID) or body.get(ppl.EMAIL)
+                uid = body.get('caller_id') or body.get(
+                    ppl.ID) or body.get(ppl.EMAIL)
 
             if not uid:
                 uid = request.args.get(ppl.ID) or request.args.get(ppl.EMAIL)

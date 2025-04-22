@@ -293,8 +293,13 @@ class PersonAddRole(Resource):
     def put(self):
         data = request.get_json(force=True)
         try:
-            updated = ppl.add_role(data[ppl.ID], data[ROLE])
-            return updated
+            user_id = data[ppl.ID]
+            role = data[ROLE]
+            updated = ppl.add_role(user_id, role)
+            return {
+                MESSAGE: f'Role "{role}" added to {user_id}',
+                RETURN:  updated
+            }, HTTPStatus.OK
         except Exception as err:
             raise wz.NotAcceptable(f'Could not add role: {err}')
 
@@ -308,8 +313,13 @@ class PersonDeleteRole(Resource):
     def delete(self):
         data = request.get_json(force=True)
         try:
-            updated = ppl.delete_role(data[ppl.ID], data[ROLE])
-            return updated
+            user_id = data[ppl.ID]
+            role = data[ROLE]
+            updated = ppl.delete_role(user_id, role)
+            return {
+                MESSAGE: f'Role "{role}" added to {user_id}',
+                RETURN:  updated
+            }, HTTPStatus.OK
         except Exception as err:
             raise wz.NotAcceptable(f'Could not delete role: {err}')
 

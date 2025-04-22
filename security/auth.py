@@ -1,43 +1,41 @@
-# auth.py
 import data.people as ppl
 import data.db_connect as dbc
 import data.roles as rls
 
 PASSWORD = 'pw'
 
+
 def register_user(username: str,
                   password: str,
                   name: str,
                   affiliation: str = "Unknown",
                   role: str = rls.AUTHOR_CODE,
-                  bio: str = "") -> dict:
+                  bio: str = "") -> bool:
     """
-    Returns the newly created user dict (with 'id') on success, or None on conflict.
+    Create a new user. Returns True on success, False if user already exists.
     """
     if ppl.read_one(username):
-        return None
+        return False
 
-    # create user record (generates UUID)
-    new_user = ppl.create(
+    ppl.create(
         name=name,
         affiliation=affiliation,
         email=username,
         role=role,
         bio=bio,
     )
-
-    # store password
     dbc.update(
         collection=ppl.PEOPLE_COLLECT,
         filters={ppl.EMAIL: username},
         update_dict={PASSWORD: password}
     )
 
-    return new_user
+    return True
+
 
 def authenticate_user(username: str, password: str) -> dict:
     """
-    Returns {id, email, name, roles} on success, or None.
+    Returns a dict {id, email, name, roles} on valid credentials, or None.
     """
     rec = ppl.read_one(username)
     if not rec or rec.get(PASSWORD) != password:
