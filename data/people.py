@@ -1,176 +1,145 @@
+# people.py
 import re
+import uuid
 import data.roles as rls
 import data.db_connect as dbc
 
 MIN_USER_NAME_LEN = 2
-
 PEOPLE_COLLECT = 'people'
 
-# fields
-NAME = 'name'
-ROLES = 'roles'
+# field keys
+ID          = 'id'
+NAME        = 'name'
+ROLES       = 'roles'
 AFFILIATION = 'affiliation'
-EMAIL = 'email'
-BIO = 'bio'
-
-# for re check
-CHAR_OR_DIGIT = '[A-Za-z0-9]'
+EMAIL       = 'email'
+BIO         = 'bio'
 
 client = dbc.connect_db()
-print(f'{client=}')
 
+CHAR_OR_DIGIT = '[A-Za-z0-9]'
 
 def is_valid_email(email: str) -> bool:
     pattern = (
         rf"^(?!.*\.\.)"                    # no consecutive '.'
-        rf"{CHAR_OR_DIGIT}[a-zA-Z0-9._%+-]*"
-        rf"@{CHAR_OR_DIGIT}[a-zA-Z0-9.-]*"
-        r"\.[a-zA-Z]{2,10}$"
+        rf"{CHAR_OR_DIGIT}[A-Za-z0-9._%+-]*"
+        rf"@{CHAR_OR_DIGIT}[A-Za-z0-9.-]*"
+        r"\.[A-Za-z]{2,10}$"
     )
     return bool(re.match(pattern, email))
 
 
-def read():
+def read() -> dict:
+    """Return all users keyed by UUID."""
+    recs = dbc.read(PEOPLE_COLLECT)  # get a list of dicts
+    out = {}
+    for rec in recs:
+        key = rec.get(ID) or rec.get(EMAIL)
+        out[key] = rec
+    return out
+
+def read_one(identifier: str) -> dict:
     """
-    Our contract:
-        - No arguments.
-        - Returns a dictionary of users keyed on user email.
-        - Each user email must be the key for another dictionary.
+    Lookup by UUID or email.
     """
-    people = dbc.read_dict(PEOPLE_COLLECT, EMAIL)
-    print(f'{people=}')
-    return people
+    rec = dbc.read_one(PEOPLE_COLLECT, {ID: identifier})
+    if rec:
+        return rec
+    return dbc.read_one(PEOPLE_COLLECT, {EMAIL: identifier})
 
 
-def read_one(email: str) -> dict:
-    """
-    Return a person record if email present in DB,
-    else None.
-    """
-    return dbc.read_one(PEOPLE_COLLECT, {EMAIL: email})
+def exists(identifier: str) -> bool:
+    return read_one(identifier) is not None
 
-
-def exists(email: str) -> bool:
-    return read_one(email) is not None
-
-
-def is_valid_person(
-        name: str, affiliation: str, email: str,
-        role: str = None, roles: list = None, bio: str = None
-) -> bool:
+def is_valid_person(name, affiliation, email, role=None, roles=None, bio=None) -> bool:
     if not is_valid_email(email):
         raise ValueError(f'Invalid email: {email}')
     if not name.strip() or not affiliation.strip():
-        raise ValueError("Name or Affiliation can't be blank. ")
-    if role:
-        if not rls.is_valid(role):
-            raise ValueError(f'Invalid role: {role}')
-    elif roles:
-        for role in roles:
-            if not rls.is_valid(role):
-                raise ValueError(f'Invalid role: {role}')
+        raise ValueError("Name and affiliation can't be blank.")
+    for r in ([role] if role else roles or []):
+        if not rls.is_valid(r):
+            raise ValueError(f'Invalid role: {r}')
     return True
 
 
-def create(name: str, affiliation: str, email: str, role: str, bio: str = ""):
+def create(name: str, affiliation: str, email: str, role: str, bio: str = "") -> dict:
+    """Create a user with a generated UUID, return full record."""
     if exists(email):
-        raise ValueError(f'Adding duplicate {email=}')
+        raise ValueError(f'Duplicate email: {email}')
     if is_valid_person(name, affiliation, email, role=role):
-        roles = []
-        if role:
-            roles.append(role)
+        new_id = str(uuid.uuid4())
         person = {
-            NAME: name,
+            ID:          new_id,
+            NAME:        name,
             AFFILIATION: affiliation,
-            EMAIL: email,
-            ROLES: roles,
-            BIO: bio
+            EMAIL:       email,
+            ROLES:       [role] if role else [],
+            BIO:         bio or ""
         }
         dbc.create(PEOPLE_COLLECT, person)
-        return email
+        return person
 
 
-def delete(email):
-    del_num = dbc.delete(PEOPLE_COLLECT, {EMAIL: email})
-    return email if del_num == 1 else None
-
-
-def update(email: str, name: str, affiliation: str, bio: str = None):
-    if not exists(email):
-        raise ValueError(f'Updating non-existent person: {email=}')
-    if is_valid_person(name, affiliation, email):
-        update_fields = {NAME: name, AFFILIATION: affiliation}
+def update(identifier: str, name: str, affiliation: str, bio: str = None) -> dict:
+    """Update name/affiliation/bio by UUID or email, return updated record."""
+    rec = read_one(identifier)
+    if not rec:
+        raise ValueError(f'No such user: {identifier}')
+    if is_valid_person(name, affiliation, rec[EMAIL]):
+        fields_to_set = {NAME: name, AFFILIATION: affiliation}
         if bio is not None:
-            update_fields[BIO] = bio
-        dbc.update(PEOPLE_COLLECT, {EMAIL: email}, update_fields)
-        return email
+            fields_to_set[BIO] = bio
+        dbc.update(PEOPLE_COLLECT, {ID: rec[ID]}, fields_to_set)
+        return read_one(rec[ID])
 
 
-def has_role(person: dict, role: str):
-    if role in person.get(ROLES):
-        return True
-    return False
+def delete(identifier: str) -> dict:
+    """Delete by UUID or email, return the deleted record."""
+    rec = read_one(identifier)
+    if not rec:
+        return None
+    count = dbc.delete(PEOPLE_COLLECT, {ID: rec[ID]})
+    return rec if count == 1 else None
 
 
-MH_FIELDS = [NAME, AFFILIATION, BIO]
+def add_role(identifier: str, role: str) -> dict:
+    """Add a role, return full updated record."""
+    rec = read_one(identifier)
+    if not rec:
+        raise ValueError(f'No such user: {identifier}')
+    if role in rec[ROLES]:
+        raise ValueError("Duplicate role.")
+    rec[ROLES].append(role)
+    dbc.update(PEOPLE_COLLECT, {ID: rec[ID]}, {ROLES: rec[ROLES]})
+    return read_one(rec[ID])
 
 
-def get_mh_fields(journal_code=None) -> list:
-    return MH_FIELDS
+def delete_role(identifier: str, role: str) -> dict:
+    """Remove a role, return full updated record."""
+    rec = read_one(identifier)
+    if not rec:
+        raise ValueError(f'No such user: {identifier}')
+    if role not in rec[ROLES]:
+        raise ValueError("Role not found.")
+    rec[ROLES].remove(role)
+    dbc.update(PEOPLE_COLLECT, {ID: rec[ID]}, {ROLES: rec[ROLES]})
+    return read_one(rec[ID])
 
 
-def create_mh_rec(person: dict) -> dict:
-    mh_rec = {}
-    for field in get_mh_fields():
-        mh_rec[field] = person.get(field, '')
-    return mh_rec
-
-
-def get_masthead() -> dict:
-    masthead = {}
-    mh_roles = rls.get_masthead_roles()
-    for mh_role, text in mh_roles.items():
-        people_w_role = []
-        people = read()
-        for _id, person in people.items():
-            if has_role(person, mh_role):
-                rec = create_mh_rec(person)
-                people_w_role.append(rec)
-            masthead[text] = people_w_role
-    return masthead
-
-
-def add_role(email: str, role: str):
-    if not exists(email):
-        raise ValueError(f'Updating non-existent person: {email=}')
-    if not rls.is_valid(role):
-        raise ValueError(f'Invalid role: {role}')
-    person = read_one(email)
-    if has_role(person, role):
-        raise ValueError("Can't add a duplicate role")
-    updated_roles = person[ROLES] + [role]
-    dbc.update(PEOPLE_COLLECT, {EMAIL: email}, {ROLES: updated_roles})
-    return email
-
-
-def delete_role(email: str, role: str):
-    if not exists(email):
-        raise ValueError(f'Updating non-existent person: {email=}')
-    person = read_one(email)
-    if not has_role(person, role):
-        raise ValueError("Role not found")
-    updated_roles = [r for r in person[ROLES] if r != role]
-    dbc.update(PEOPLE_COLLECT, {EMAIL: email}, {ROLES: updated_roles})
-    return email
-
-
-def get_all_people():
+def get_all_people() -> list:
     people = read()
-    result = []
-    for person in people.values():
-        result.append(f"{person['name']} ({person['email']})")
-    return result
+    return [f"{p[NAME]} ({p[EMAIL]})" for p in people.values()]
 
+def get_masthead():
+    """
+    Return only those people who are editors (ED) or managing editors (ME).
+    """
+    all_people = read()
+    return {
+        user_id: { 'name': p['name'], 'email': p['email'], 'roles': p['roles'] }
+        for user_id, p in all_people.items()
+        if any(r in ('ED','ME') for r in p.get('roles', []))
+    }
 
 def main():
     print(get_masthead())

@@ -15,10 +15,10 @@ import data.roles as rls
 import data.text as txt
 import data.manuscript as ms
 import security.auth as auth
+import security.security as sec
 
 from datetime import datetime
 import platform
-from security.security import requires_permission
 
 # Config for developer endpoints
 CONFIG = {
@@ -30,7 +30,6 @@ CONFIG = {
 
 app = Flask(__name__)
 CORS(app)
-api = Api(app)
 
 ENDPOINT_EP = '/endpoints'
 ENDPOINT_RESP = 'Available endpoints'
@@ -71,6 +70,24 @@ USERNAME = 'username'
 PASSWORD = 'password'
 
 DEV_EP = '/dev'
+
+authorizations = {
+    'ApiKeyHeader': {
+        'type': 'apiKey',
+        'in': 'header',
+        'name': 'X-User-Id',
+        'description': 'Your user UUID or email (must have ED/ME roles)'
+    }
+}
+
+api = Api(
+    app,
+    version='1.0',
+    title='My Journal API',
+    description='API for journal management',
+    authorizations=authorizations,
+    security='ApiKeyHeader'
+)
 
 
 @api.route(f'{DEV_EP}/status')
@@ -160,7 +177,7 @@ class Roles(Resource):
 
 
 @api.route(PEOPLE_EP)
-class People(Resource):
+class PeopleList(Resource):
     """
     This class handles creating, reading, updating
     and deleting journal people.
@@ -181,10 +198,44 @@ class PeopleGetAll(Resource):
         return ppl.get_all_people()
 
 
+PEOPLE_UPDATE_FLDS = api.model('UpdatePeopleEntry', {
+    ppl.NAME:       fields.String(required=True),
+    ppl.AFFILIATION: fields.String(required=True),
+    ppl.BIO:        fields.String(required=False),
+})
+
+
+@api.route(f'{PEOPLE_EP}/<string:user_id>')
+class PersonDetail(Resource):
+    @api.doc(params={'user_id': 'UUID or email'})
+    def get(self, user_id):
+        person = ppl.read_one(user_id)
+        if not person:
+            raise wz.NotFound(f'No such person: {user_id}')
+        return person
+
+    @sec.requires_permission('people', 'update', roles=['ED', 'ME'])
+    @api.expect(PEOPLE_UPDATE_FLDS)
+    def put(self, user_id):
+        data = request.get_json(force=True)
+        updated = ppl.update(
+            user_id,
+            data['name'], data['affiliation'], data.get('bio')
+        )
+        return updated
+
+    @sec.requires_permission('people', 'delete', roles=['ED', 'ME'])
+    def delete(self, user_id):
+        deleted = ppl.delete(user_id)
+        if not deleted:
+            raise wz.NotFound(f'No such person: {user_id}')
+        return deleted
+
+
 @api.route(f'{PEOPLE_EP}/<email>')
 class Person(Resource):
     """
-    This class handles reading and deleting a journal person.
+    This class handles reading journal person.
     """
     def get(self, email):
         """
@@ -195,19 +246,6 @@ class Person(Resource):
             return person
         else:
             raise wz.NotFound(f'No such record: {email}')
-
-    @api.response(HTTPStatus.OK, 'Success.')
-    @api.response(HTTPStatus.NOT_FOUND, 'No such person.')
-    @requires_permission(feature='people', action='delete')
-    def delete(self, email):
-        """
-        Delete a person by email.
-        """
-        ret = ppl.delete(email)
-        if ret is not None:
-            return {DELETED: ret}
-        else:
-            raise wz.NotFound(f'No such person: {email}')
 
 
 PEOPLE_CREATE_FLDS = api.model('AddNewPeopleEntry', {
@@ -221,116 +259,59 @@ PEOPLE_CREATE_FLDS = api.model('AddNewPeopleEntry', {
 
 @api.route(f'{PEOPLE_EP}/create')
 class PersonCreate(Resource):
-    """
-    Add a person to the journal db.
-    """
-    @api.response(HTTPStatus.OK, 'Success. ')
-    @api.response(HTTPStatus.NOT_ACCEPTABLE, 'Not acceptable. ')
     @api.expect(PEOPLE_CREATE_FLDS)
-    def put(self):
-        """
-        Add a person.
-        """
-        try:
-            name = request.json.get(ppl.NAME)
-            affiliation = request.json.get(ppl.AFFILIATION)
-            email = request.json.get(ppl.EMAIL)
-            role = request.json.get(ppl.ROLES)
-            bio = request.json.get(ppl.BIO, "")
-            ret = ppl.create(name, affiliation, email, role, bio)
-        except Exception as err:
-            raise wz.NotAcceptable(f'Could not add person: {err=}')
-        return {
-            MESSAGE: 'Person added!',
-            RETURN: ret,
-        }
-
-
-PEOPLE_UPDATE_FLDS = api.model('UpdatePeopleEntry', {
-    ppl.EMAIL: fields.String,
-    ppl.NAME: fields.String,
-    ppl.AFFILIATION: fields.String,
-    ppl.BIO: fields.String(required=False),
-})
-
-
-@api.route(f'{PEOPLE_EP}/update')
-class PersonUpdate(Resource):
-    """
-    This class handles the update of a person's information.
-    """
-    @api.response(HTTPStatus.OK, 'Success. ')
-    @api.response(HTTPStatus.NOT_ACCEPTABLE, 'Not acceptable. ')
-    @api.expect(PEOPLE_UPDATE_FLDS)
-    def put(self):
-        """
-        Update person information.
-        """
-        try:
-            email = request.json.get(ppl.EMAIL)
-            name = request.json.get(ppl.NAME)
-            affiliation = request.json.get(ppl.AFFILIATION)
-            bio = request.json.get(ppl.BIO)
-            ret = ppl.update(email, name, affiliation, bio)
-        except Exception as err:
-            raise wz.NotAcceptable(f'Could not update person: {err=}')
-        return {
-            MESSAGE: f'{email} updated!',
-            RETURN: ret,
-        }
+    def post(self):
+        all_people = ppl.read()
+        if all_people:
+            caller = request.headers.get('X-User-Id')
+            user = ppl.read_one(caller) if caller else None
+            if not user or not set(
+                    user.get('roles', [])).intersection({'ED', 'ME'}):
+                raise wz.Forbidden(
+                    'Only ED/ME may add new people once seeded')
+        return ppl.create(
+            name=request.json.get(ppl.NAME),
+            affiliation=request.json.get(ppl.AFFILIATION),
+            bio=request.json.get(ppl.BIO),
+            email=request.json.get(ppl.EMAIL),
+            role=request.json.get(ppl.ROLES),
+        ), HTTPStatus.CREATED
 
 
 PEOPLE_ROLE_UPDATE_FLDS = api.model('UpdateRoleEntry', {
-    ppl.EMAIL: fields.String,
+    ppl.ID: fields.String,
     ROLE: fields.String,
 })
 
 
 @api.route(f'{PEOPLE_EP}/add_role')
 class PersonAddRole(Resource):
-    """
-    This class handles the update of a people's role (ADD).
-    """
-    @api.response(HTTPStatus.OK, 'Success. ')
-    @api.response(HTTPStatus.NOT_ACCEPTABLE, 'Not acceptable. ')
+    @api.response(HTTPStatus.OK, 'Success.')
+    @api.response(HTTPStatus.NOT_ACCEPTABLE, 'Not acceptable.')
+    @sec.requires_permission('people', 'create', roles=['ED', 'ME'])
     @api.expect(PEOPLE_ROLE_UPDATE_FLDS)
     def put(self):
-        """
-        Add people role.
-        """
+        data = request.get_json(force=True)
         try:
-            email = request.json.get(ppl.EMAIL)
-            role = request.json.get(ROLE)
-            ret = ppl.add_role(email, role)
+            updated = ppl.add_role(data[ppl.ID], data[ROLE])
+            return updated
         except Exception as err:
             raise wz.NotAcceptable(f'Could not add role: {err}')
-        return {
-            MESSAGE: f'{role} added for {email}!',
-            RETURN: ret,
-        }
 
 
 @api.route(f'{PEOPLE_EP}/delete_role')
 class PersonDeleteRole(Resource):
-    """
-    This class handles the deletion of a people's role (DELETE).
-    """
-    @api.response(HTTPStatus.OK, 'Success. ')
-    @api.response(HTTPStatus.NOT_ACCEPTABLE, 'Not acceptable. ')
+    @api.response(HTTPStatus.OK, 'Success.')
+    @api.response(HTTPStatus.NOT_ACCEPTABLE, 'Not acceptable.')
+    @sec.requires_permission('people', 'create', roles=['ED', 'ME'])
     @api.expect(PEOPLE_ROLE_UPDATE_FLDS)
     def delete(self):
+        data = request.get_json(force=True)
         try:
-            # Use force=True and silent=True so the JSON is parsed correctly
-            data = request.get_json(force=True, silent=True)
-            email = data.get(ppl.EMAIL)
-            role = data.get(ROLE)
-            ret = ppl.delete_role(email, role)
+            updated = ppl.delete_role(data[ppl.ID], data[ROLE])
+            return updated
         except Exception as err:
             raise wz.NotAcceptable(f'Could not delete role: {err}')
-        return {
-            MESSAGE: f'{role} deleted for {email}!',
-            RETURN: ret,
-        }
 
 
 @api.route(TEXT_EP)
@@ -732,8 +713,20 @@ class ManuscriptRefereeActions(Resource):
         return {"referee_actions": list(referee_actions)}
 
 
-@api.route('/dev/editor_dashboard')
+@api.route(f'{DEV_EP}/editor_dashboard')
 class EditorDashboardPermission(Resource):
-    @requires_permission('editor_dashboard', 'access', roles=['ED', 'ME'])
+    @sec.requires_permission('editor_dashboard', 'access', roles=['ED', 'ME'])
     def get(self):
         return {'message': 'Authorized'}, HTTPStatus.OK
+
+
+@api.route('/dev/clear_db')
+class ClearDatabase(Resource):
+    """
+    WARNING: Development-only endpoint. Drops the entire journal database.
+    """
+    def delete(self):
+        from data.db_connect import connect_db, JOURNAL_DB
+        client = connect_db()
+        client.drop_database(JOURNAL_DB)
+        return {'message': f"Database '{JOURNAL_DB}' dropped."}, HTTPStatus.OK

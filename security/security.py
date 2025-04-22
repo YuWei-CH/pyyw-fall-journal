@@ -195,30 +195,36 @@ def is_permitted(feature_name: str, action: str,
 
 
 def requires_permission(feature: str, action: str, roles=None):
+    """
+    Enforce that the caller (via header/body/query/path) exists and,
+    if roles are specified, has at least one of them.
+    """
     def decorator(fn):
         @wraps(fn)
         def wrapper(*args, **kwargs):
-            user_info = (
-                request.get_json(force=True, silent=True)
-                or request.args
-            )
-            user_id = user_info.get('email') or user_info.get('user_id')
-            # login_key = user_info.get('login_key')
+            uid = request.headers.get('X-User-Id') \
+                  or request.headers.get('X-User-Email')
 
-            if not user_id:
-                raise Forbidden('Missing user ID.')
+            if not uid:
+                body = request.get_json(force=True, silent=True) or {}
+                uid = body.get('caller_id') or body.get(ppl.ID) or body.get(ppl.EMAIL)
 
-            user_record = ppl.read_one(user_id)
-            if not user_record:
+            if not uid:
+                uid = request.args.get(ppl.ID) or request.args.get(ppl.EMAIL)
+
+            if not uid:
+                uid = kwargs.get(ppl.ID)
+
+            if not uid:
+                raise Forbidden('Missing caller identity.')
+
+            user = ppl.read_one(uid)
+            if not user:
                 raise Forbidden('User not found.')
 
-            user_roles = user_record.get('roles', [])
-            if roles and not set(user_roles).intersection(set(roles)):
-                raise Forbidden(
-                    f'User {user_id} lacks required roles: {roles}'
-                )
+            if roles and not set(user.get(ppl.ROLES, [])).intersection(roles):
+                raise Forbidden(f'User {uid} lacks required roles: {roles}')
 
-            # (Optional: Validate login_key if necessary)
             return fn(*args, **kwargs)
         return wrapper
     return decorator
