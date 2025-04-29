@@ -744,6 +744,7 @@ class ClearDatabase(Resource):
         client.drop_database(JOURNAL_DB)
         return {'message': f"Database '{JOURNAL_DB}' dropped."}, HTTPStatus.OK
 
+
 COMMENT_CREATE_FLDS = api.model('CommentCreateEntry', {
     cmt.MANUSCRIPT_ID: fields.String(required=True),
     cmt.EDITOR_ID: fields.String(required=True),
@@ -755,6 +756,7 @@ COMMENT_UPDATE_FLDS = api.model('CommentUpdateEntry', {
     cmt.TEXT: fields.String(required=True),
 })
 
+
 @api.route(COMMENT_EP)
 class Comments(Resource):
     """
@@ -765,6 +767,7 @@ class Comments(Resource):
         Retrieve all comments.
         """
         return cmt.read_all()
+
 
 @api.route(f'{COMMENT_EP}/<comment_id>')
 class CommentDetail(Resource):
@@ -793,6 +796,7 @@ class CommentDetail(Resource):
             return {DELETED: ret}
         else:
             raise wz.NotFound(f'No such comment with ID: {comment_id}')
+
 
 @api.route(f'{COMMENT_EP}/create')
 class CommentCreate(Resource):
@@ -843,6 +847,7 @@ class CommentUpdate(Resource):
             MESSAGE: f'Comment {comment_id} updated!',
             RETURN: ret,
         }
+
 
 @api.route(f'{COMMENT_EP}/manuscript/<manuscript_id>')
 class CommentsByManuscript(Resource):
