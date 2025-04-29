@@ -1,17 +1,18 @@
 import data.db_connect as dbc
 import data.manuscript as msc
 import data.people as ppl
+from data.roles import ED_CODE
 from bson import ObjectId
 
-COMMENTS_COLLECT = 'comments'
+COMMENTS_COLLECTION = "comments"
 client = dbc.connect_db()
 
-# Fields
-COMMENT_ID = '_id'
-MANUSCRIPT_ID = 'manuscript_id'
-EDITOR_ID = 'editor_id'
-TEXT = 'text'
+COMMENT_ID = "_id"
+MANUSCRIPT_ID = "manuscript_id"
+EDITOR_ID = "editor_id"
+TEXT = "text"
 TIMESTAMP = 'timestamp'
+
 
 def to_object_id(id_str):
     """
@@ -22,106 +23,102 @@ def to_object_id(id_str):
     except Exception:
         return None
 
-def is_valid_comment(manuscript_id: str, editor_id: str, text: str) -> bool:
-    """
-    Validate a comment before creating or updating it.
-    """
-    if not manuscript_id or not editor_id or not text:
-        raise ValueError("Manuscript ID, editor ID, and text are required.")
-    
-    if not text.strip():
-        raise ValueError("Comment text cannot be empty.")
-    
-    # Check if manuscript exists
-    if not msc.exists(manuscript_id):
-        raise ValueError(f"Manuscript with ID '{manuscript_id}' not found.")
-    
-    # Check if editor exists
-    if not ppl.exists(editor_id):
-        raise ValueError(f"Editor with ID '{editor_id}' not found.")
-    
+
+def is_valid_comment(manuscript_id, editor_id, text):
+    """Validate comment data."""
+    if not text:
+        raise ValueError("Comment text cannot be empty")
+
+    manuscript = msc.read_one(manuscript_id)
+    if not manuscript:
+        raise ValueError(f"Manuscript {manuscript_id} not found")
+
+    editor = ppl.read_one(editor_id)
+    if not editor:
+        raise ValueError(f"Editor {editor_id} not found")
+
+    if not ppl.has_role(editor, ED_CODE):
+        raise ValueError(f"Person {editor_id} is not an editor")
+
     return True
 
-def create(manuscript_id: str, editor_id: str, text: str) -> str:
-    """
-    Create a new comment and return its ID.
-    """
-    if is_valid_comment(manuscript_id, editor_id, text):
-        from datetime import datetime
-        
-        comment = {
-            MANUSCRIPT_ID: manuscript_id,
-            EDITOR_ID: editor_id,
-            TEXT: text,
-            TIMESTAMP: datetime.now()
-        }
-        
-        result = dbc.create(COMMENTS_COLLECT, comment)
-        return str(result.inserted_id)
 
-def read_one(comment_id: str) -> dict:
-    """
-    Return a single comment record as a dict, or None if not found.
-    """
-    return dbc.read_one(COMMENTS_COLLECT, {COMMENT_ID: to_object_id(comment_id)})
+def create(manuscript_id, editor_id, text):
+    """Create a new comment."""
+    if not is_valid_comment(manuscript_id, editor_id, text):
+        raise ValueError("Invalid comment data")
 
-def read_by_manuscript(manuscript_id: str) -> list:
-    """
-    Return all comments for a specific manuscript.
-    """
-    comments = []
-    for comment in dbc.read(COMMENTS_COLLECT, no_id=False):
-        if comment[MANUSCRIPT_ID] == manuscript_id:
-            comments.append(comment)
-    return comments
+    comment = {
+        MANUSCRIPT_ID: manuscript_id,
+        EDITOR_ID: editor_id,
+        TEXT: text
+    }
 
-def read_by_editor(editor_id: str) -> list:
-    """
-    Return all comments made by a specific editor.
-    """
-    comments = []
-    for comment in dbc.read(COMMENTS_COLLECT, no_id=False):
-        if comment[EDITOR_ID] == editor_id:
-            comments.append(comment)
-    return comments
+    result = dbc.create(COMMENTS_COLLECTION, comment)
+    return str(result.inserted_id)
 
-def update(comment_id: str, text: str) -> str:
-    """
-    Update an existing comment's text.
-    """
+
+def read_one(comment_id):
+    """Read a single comment by ID."""
+    obj_id = to_object_id(comment_id)
+    if not obj_id:
+        return None
+    return dbc.read_one(COMMENTS_COLLECTION, {COMMENT_ID: obj_id})
+
+
+def read_by_manuscript(manuscript_id):
+    """Read all comments for a manuscript."""
+    comments = dbc.read(COMMENTS_COLLECTION, no_id=False)
+    return [c for c in comments if c[MANUSCRIPT_ID] == manuscript_id]
+
+
+def read_by_editor(editor_id):
+    """Read all comments by an editor."""
+    comments = dbc.read(COMMENTS_COLLECTION, no_id=False)
+    return [c for c in comments if c[EDITOR_ID] == editor_id]
+
+
+def update(comment_id, text):
+    """Update a comment's text."""
+    if not text:
+        raise ValueError("Comment text cannot be empty")
+
     comment = read_one(comment_id)
     if not comment:
-        raise ValueError(f"Comment with ID '{comment_id}' not found.")
-    
-    if not text.strip():
-        raise ValueError("Comment text cannot be empty.")
-    
+        raise ValueError(f"Comment {comment_id} not found")
+
+    obj_id = to_object_id(comment_id)
+    if not obj_id:
+        raise ValueError(f"Invalid comment ID: {comment_id}")
     dbc.update(
-        COMMENTS_COLLECT,
-        {COMMENT_ID: to_object_id(comment_id)},
+        COMMENTS_COLLECTION,
+        {COMMENT_ID: obj_id},
         {TEXT: text}
     )
     return comment_id
 
-def delete(comment_id: str) -> str:
-    """
-    Delete a comment by its ID.
-    """
+
+def delete(comment_id):
+    """Delete a comment."""
     comment = read_one(comment_id)
     if not comment:
         return None
-    
-    del_count = dbc.delete(COMMENTS_COLLECT, {COMMENT_ID: to_object_id(comment_id)})
-    return comment_id if del_count == 1 else None
+    obj_id = to_object_id(comment_id)
+    if not obj_id:
+        return None
 
-def read_all() -> list:
-    """
-    Return all comments in the database.
-    """
-    return dbc.read(COMMENTS_COLLECT, no_id=False)
+    result = dbc.delete(COMMENTS_COLLECTION, {COMMENT_ID: obj_id})
+    return comment_id if result > 0 else None
+
+
+def read_all():
+    """Read all comments."""
+    return dbc.read(COMMENTS_COLLECTION, no_id=False)
+
 
 def main():
     pass
 
+
 if __name__ == '__main__':
-    main() 
+    main()
