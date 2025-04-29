@@ -21,6 +21,7 @@ import data.text as txt
 import data.roles as rls
 from data.text import *
 import data.manuscript as ms
+import data.comment as cmt
 
 from unittest.mock import patch
 from datetime import datetime
@@ -31,7 +32,7 @@ TEST_EMAIL = "testEmail@gmail.com"
 TEST_TITLE = "Test Manuscript Title"
 TEST_PAGE_NUMBER = "TestPageNumber"
 TEST_CLIENT = ep.app.test_client()
-GOOD_USER_RECORD = {'email': TEST_EMAIL, 'roles': ['ME']}
+GOOD_USER_RECORD = {'email': TEST_EMAIL, 'roles': ['ME', 'RE', 'ED']}
 AUTH_HEADERS = {'X-User-Id': GOOD_USER_RECORD['email']}
 
 ADD_DELETE_ROLE_DATA = {
@@ -793,3 +794,158 @@ def test_person_detail_delete_not_found(mock_delete, mock_read_one):
         headers=AUTH_HEADERS
     )
     assert resp.status_code == HTTPStatus.NOT_FOUND
+
+
+TEST_COMMENT_ID = "112233xxyy"
+TEST_COMMENT_TEXT = "This is a test comment for Referee revisions."
+
+COMMENT_TEST_DATA = {
+    cmt.MANUSCRIPT_ID: TEST_MANU_ID,
+    cmt.EDITOR_ID: TEST_EMAIL,
+    cmt.TEXT: TEST_COMMENT_TEXT
+}
+
+COMMENT_UPDATE_TEST_DATA = {
+    cmt.COMMENT_ID: TEST_COMMENT_ID,
+    cmt.TEXT: "Updated revision text"
+}
+
+@patch('security.security.requires_permission', lambda *args, **kwargs: lambda f: f)
+@patch('data.comment.read_all', autospec=True,
+       return_value=[{cmt.COMMENT_ID: TEST_COMMENT_ID, cmt.TEXT: TEST_COMMENT_TEXT}])
+def test_read_comments(mock_read_all):
+    """Test reading all comments."""
+    resp = TEST_CLIENT.get(ep.COMMENT_EP)
+    assert resp.status_code == OK
+    resp_json = resp.get_json()
+    assert isinstance(resp_json, list)
+    assert len(resp_json) > 0
+    assert resp_json[0][cmt.COMMENT_ID] == TEST_COMMENT_ID
+    assert resp_json[0][cmt.TEXT] == TEST_COMMENT_TEXT
+
+@patch('security.security.requires_permission', lambda *args, **kwargs: lambda f: f)
+@patch('data.comment.read_one', autospec=True,
+       return_value={cmt.COMMENT_ID: TEST_COMMENT_ID, cmt.TEXT: TEST_COMMENT_TEXT})
+def test_read_one_comment(mock_read_one):
+    """Test reading a single comment by ID."""
+    resp = TEST_CLIENT.get(f'{ep.COMMENT_EP}/{TEST_COMMENT_ID}')
+    assert resp.status_code == OK
+    resp_json = resp.get_json()
+    assert isinstance(resp_json, dict)
+    assert resp_json[cmt.COMMENT_ID] == TEST_COMMENT_ID
+    assert resp_json[cmt.TEXT] == TEST_COMMENT_TEXT
+
+@patch('security.security.requires_permission', lambda *args, **kwargs: lambda f: f)
+@patch('data.comment.read_one', autospec=True, return_value=None)
+def test_read_one_comment_not_found(mock_read_one):
+    """Test reading a non-existent comment."""
+    resp = TEST_CLIENT.get(f'{ep.COMMENT_EP}/nonexistent')
+    assert resp.status_code == NOT_FOUND
+
+
+
+GOOD_EDITOR_USER = {
+    "email": TEST_EMAIL,
+    "roles": ["ED"],
+    "name": "Editor User"
+}
+
+@patch('data.people.read_one', return_value=GOOD_EDITOR_USER)
+@patch('data.comment.read_one')
+@patch('data.comment.delete')
+def test_delete_comment(mock_delete, mock_read_one, mock_read_user):
+    """Test deleting a comment."""
+    mock_read_one.side_effect = [
+        {cmt.COMMENT_ID: TEST_COMMENT_ID, cmt.TEXT: "Exists"},
+        None
+    ]
+    mock_delete.return_value = TEST_COMMENT_ID
+
+    resp = TEST_CLIENT.delete(f"{ep.COMMENT_EP}/{TEST_COMMENT_ID}", headers=AUTH_HEADERS)
+    assert resp.status_code == OK
+    mock_delete.assert_called_once_with(TEST_COMMENT_ID)
+
+@patch('data.people.read_one', return_value=GOOD_EDITOR_USER)
+@patch('data.comment.create')
+@patch('data.comment.read_one')
+def test_create_comment(mock_read_one, mock_create, mock_read_user):
+    """Test creating a comment."""
+    new_comment_id = "new_comment_123"
+    mock_create.return_value = new_comment_id
+    created_comment_data = {
+        cmt.COMMENT_ID: new_comment_id,
+        cmt.MANUSCRIPT_ID: TEST_MANU_ID,
+        cmt.EDITOR_ID: TEST_EMAIL,
+        cmt.TEXT: "This is a new test comment.",
+    }
+    mock_read_one.return_value = created_comment_data
+
+    comment_data = {
+        cmt.MANUSCRIPT_ID: TEST_MANU_ID,
+        cmt.EDITOR_ID: TEST_EMAIL,
+        cmt.TEXT: "This is a new test comment.",
+    }
+    resp = TEST_CLIENT.put(f"{ep.COMMENT_EP}/create", json=comment_data, headers=AUTH_HEADERS)
+
+    assert resp.status_code == OK
+    data = resp.get_json()
+    assert data[ep.RETURN] == new_comment_id
+
+    mock_create.assert_called_once_with(
+        comment_data[cmt.MANUSCRIPT_ID],
+        comment_data[cmt.EDITOR_ID],
+        comment_data[cmt.TEXT]
+    )
+    comment = cmt.read_one(new_comment_id)
+    assert comment is not None
+    assert comment[cmt.TEXT] == comment_data[cmt.TEXT]
+
+@patch('data.people.read_one', return_value=GOOD_EDITOR_USER)
+@patch('data.comment.create', side_effect=ValueError("Invalid manuscript ID"))
+def test_create_comment_failed(mock_create, mock_read_user):
+    """Test creating a comment with invalid data (non-existent manuscript)."""
+    comment_data = {
+        cmt.MANUSCRIPT_ID: "invalid_manuscript_id",
+        cmt.EDITOR_ID: TEST_EMAIL,
+        cmt.TEXT: "This comment should fail.",
+    }
+    resp = TEST_CLIENT.put(f"{ep.COMMENT_EP}/create", json=comment_data, headers=AUTH_HEADERS)
+    assert resp.status_code == NOT_ACCEPTABLE
+
+@patch('data.people.read_one', return_value=GOOD_EDITOR_USER)
+@patch('data.comment.update')
+@patch('data.comment.read_one')
+def test_update_comment(mock_read_one, mock_update, mock_read_user):
+    """Test updating a comment."""
+    mock_update.return_value = TEST_COMMENT_ID
+    updated_content = "Updated comment content."
+    updated_comment_data = {
+        cmt.COMMENT_ID: TEST_COMMENT_ID,
+        cmt.TEXT: updated_content
+    }
+    mock_read_one.return_value = updated_comment_data
+
+    update_data = {
+        cmt.COMMENT_ID: TEST_COMMENT_ID,
+        cmt.TEXT: updated_content
+    }
+    resp = TEST_CLIENT.put(f"{ep.COMMENT_EP}/update", json=update_data, headers=AUTH_HEADERS)
+    assert resp.status_code == OK
+    data = resp.get_json()
+    assert data[ep.RETURN] == TEST_COMMENT_ID
+
+    mock_update.assert_called_once_with(TEST_COMMENT_ID, updated_content)
+    updated_comment = cmt.read_one(TEST_COMMENT_ID)
+    assert updated_comment is not None
+    assert updated_comment[cmt.TEXT] == updated_content
+
+@patch('data.people.read_one', return_value=GOOD_EDITOR_USER)
+@patch('data.comment.update', side_effect=ValueError("Cannot update non-text fields"))
+def test_update_comment_failed(mock_update, mock_read_user):
+    """Test updating a comment with invalid data."""
+    update_data = {
+        cmt.COMMENT_ID: TEST_COMMENT_ID,
+        cmt.TEXT: "Trying to fail update",
+    }
+    resp = TEST_CLIENT.put(f"{ep.COMMENT_EP}/update", json=update_data, headers=AUTH_HEADERS)
+    assert resp.status_code == NOT_ACCEPTABLE
