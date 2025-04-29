@@ -16,6 +16,7 @@ import data.text as txt
 import data.manuscript as ms
 import security.auth as auth
 import security.security as sec
+import data.comment as cmt
 
 from datetime import datetime
 import platform
@@ -70,6 +71,8 @@ USERNAME = 'username'
 PASSWORD = 'password'
 
 DEV_EP = '/dev'
+
+COMMENT_EP = '/comment'
 
 authorizations = {
     'ApiKeyHeader': {
@@ -740,3 +743,128 @@ class ClearDatabase(Resource):
         client = connect_db()
         client.drop_database(JOURNAL_DB)
         return {'message': f"Database '{JOURNAL_DB}' dropped."}, HTTPStatus.OK
+
+COMMENT_CREATE_FLDS = api.model('CommentCreateEntry', {
+    cmt.MANUSCRIPT_ID: fields.String(required=True),
+    cmt.EDITOR_ID: fields.String(required=True),
+    cmt.TEXT: fields.String(required=True),
+})
+
+COMMENT_UPDATE_FLDS = api.model('CommentUpdateEntry', {
+    cmt.COMMENT_ID: fields.String(required=True),
+    cmt.TEXT: fields.String(required=True),
+})
+
+@api.route(COMMENT_EP)
+class Comments(Resource):
+    """
+    This class handles listing all comments.
+    """
+    def get(self):
+        """
+        Retrieve all comments.
+        """
+        return cmt.read_all()
+
+@api.route(f'{COMMENT_EP}/<comment_id>')
+class CommentDetail(Resource):
+    """
+    This class handles reading and deleting a single comment.
+    """
+    def get(self, comment_id):
+        """
+        Retrieve a single comment by ID.
+        """
+        comment = cmt.read_one(comment_id)
+        if comment:
+            return comment
+        else:
+            raise wz.NotFound(f'No such comment with ID: {comment_id}')
+
+    @api.response(HTTPStatus.OK, 'Success.')
+    @api.response(HTTPStatus.NOT_FOUND, 'No such comment.')
+    @sec.requires_permission('comment', 'delete', roles=['ED', 'ME', 'RE'])
+    def delete(self, comment_id):
+        """
+        Delete a comment by ID.
+        """
+        ret = cmt.delete(comment_id)
+        if ret is not None:
+            return {DELETED: ret}
+        else:
+            raise wz.NotFound(f'No such comment with ID: {comment_id}')
+
+@api.route(f'{COMMENT_EP}/create')
+class CommentCreate(Resource):
+    """
+    Add a comment to the journal db.
+    """
+    @api.response(HTTPStatus.OK, 'Success.')
+    @api.response(HTTPStatus.NOT_ACCEPTABLE, 'Not acceptable.')
+    @api.expect(COMMENT_CREATE_FLDS)
+    @sec.requires_permission('comment', 'create', roles=['ED', 'ME', 'RE'])
+    def put(self):
+        """
+        Add a new comment.
+        """
+        try:
+            manuscript_id = request.json.get(cmt.MANUSCRIPT_ID)
+            editor_id = request.json.get(cmt.EDITOR_ID)
+            text = request.json.get(cmt.TEXT)
+            ret = cmt.create(manuscript_id, editor_id, text)
+        except Exception as err:
+            raise wz.NotAcceptable(f'Could not add comment: {err=}')
+        return {
+            MESSAGE: 'Comment added!',
+            RETURN: ret,
+        }
+
+
+@api.route(f'{COMMENT_EP}/update')
+class CommentUpdate(Resource):
+    """
+    This class handles the update of a comment's text.
+    """
+    @api.response(HTTPStatus.OK, 'Success.')
+    @api.response(HTTPStatus.NOT_ACCEPTABLE, 'Not acceptable.')
+    @api.expect(COMMENT_UPDATE_FLDS)
+    @sec.requires_permission('comment', 'update', roles=['ED', 'ME', 'RE'])
+    def put(self):
+        """
+        Update comment text.
+        """
+        try:
+            comment_id = request.json.get(cmt.COMMENT_ID)
+            text = request.json.get(cmt.TEXT)
+            ret = cmt.update(comment_id, text)
+        except Exception as err:
+            raise wz.NotAcceptable(f'Could not update comment: {err=}')
+        return {
+            MESSAGE: f'Comment {comment_id} updated!',
+            RETURN: ret,
+        }
+
+@api.route(f'{COMMENT_EP}/manuscript/<manuscript_id>')
+class CommentsByManuscript(Resource):
+    """
+    This class handles fetching comments for a specific manuscript.
+    """
+    def get(self, manuscript_id):
+        """
+        Retrieve all comments for a manuscript.
+        """
+        comments = cmt.read_by_manuscript(manuscript_id)
+        return comments
+
+
+@api.route(f'{COMMENT_EP}/editor/<editor_id>')
+class CommentsByEditor(Resource):
+    """
+    This class handles fetching comments made by a specific editor.
+    """
+    def get(self, editor_id):
+        """
+        Retrieve all comments made by an editor.
+        """
+        comments = cmt.read_by_editor(editor_id)
+        return comments
