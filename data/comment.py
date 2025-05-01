@@ -1,8 +1,9 @@
 import data.db_connect as dbc
 import data.manuscript as msc
 import data.people as ppl
-from data.roles import ED_CODE
+from data.roles import ED_CODE, REFREE_CODE
 from bson import ObjectId
+from datetime import datetime
 
 COMMENTS_COLLECTION = "comments"
 client = dbc.connect_db()
@@ -37,8 +38,10 @@ def is_valid_comment(manuscript_id, editor_id, text):
     if not editor:
         raise ValueError(f"Editor {editor_id} not found")
 
-    if not ppl.has_role(editor, ED_CODE):
-        raise ValueError(f"Person {editor_id} is not an editor")
+    is_editor = ppl.has_role(editor, ED_CODE)
+    is_referee = ppl.has_role(editor, REFREE_CODE)
+    if not (is_editor or is_referee):
+        raise ValueError(f"Person {editor_id} is not an editor or referee")
 
     return True
 
@@ -48,12 +51,15 @@ def create(manuscript_id, editor_id, text):
     if not is_valid_comment(manuscript_id, editor_id, text):
         raise ValueError("Invalid comment data")
 
+    current_time = datetime.now().isoformat()
     comment = {
         MANUSCRIPT_ID: manuscript_id,
         EDITOR_ID: editor_id,
-        TEXT: text
+        TEXT: text,
+        TIMESTAMP: current_time
     }
 
+    print(f"Creating comment: {comment}")
     result = dbc.create(COMMENTS_COLLECTION, comment)
     return str(result.inserted_id)
 
@@ -69,13 +75,15 @@ def read_one(comment_id):
 def read_by_manuscript(manuscript_id):
     """Read all comments for a manuscript."""
     comments = dbc.read(COMMENTS_COLLECTION, no_id=False)
-    return [c for c in comments if c[MANUSCRIPT_ID] == manuscript_id]
+    result = [c for c in comments if c.get(MANUSCRIPT_ID) == manuscript_id]
+    print(f"Retrieved comments for manuscript {manuscript_id}: {result}")
+    return result
 
 
 def read_by_editor(editor_id):
     """Read all comments by an editor."""
     comments = dbc.read(COMMENTS_COLLECTION, no_id=False)
-    return [c for c in comments if c[EDITOR_ID] == editor_id]
+    return [c for c in comments if c.get(EDITOR_ID) == editor_id]
 
 
 def update(comment_id, text):
@@ -93,7 +101,7 @@ def update(comment_id, text):
     dbc.update(
         COMMENTS_COLLECTION,
         {COMMENT_ID: obj_id},
-        {TEXT: text}
+        {TEXT: text, TIMESTAMP: datetime.now().isoformat()}
     )
     return comment_id
 
@@ -113,7 +121,9 @@ def delete(comment_id):
 
 def read_all():
     """Read all comments."""
-    return dbc.read(COMMENTS_COLLECTION, no_id=False)
+    comments = dbc.read(COMMENTS_COLLECTION, no_id=False)
+    print(f"All comments: {comments}")
+    return comments
 
 
 def main():

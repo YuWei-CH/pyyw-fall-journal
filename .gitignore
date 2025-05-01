@@ -149,3 +149,5 @@ fix_formatting.py
 .DS_Store
 
 swe.sh
+
+local_db.sh
