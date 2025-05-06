@@ -217,7 +217,6 @@ class PersonDetail(Resource):
             raise wz.NotFound(f'No such person: {user_id}')
         return person
 
-    @sec.requires_permission('people', 'update', roles=['ED', 'ME'])
     @api.expect(PEOPLE_UPDATE_FLDS)
     def put(self, user_id):
         data = request.get_json(force=True)
@@ -227,7 +226,6 @@ class PersonDetail(Resource):
         )
         return updated
 
-    @sec.requires_permission('people', 'delete', roles=['ED', 'ME'])
     def delete(self, user_id):
         deleted = ppl.delete(user_id)
         if not deleted:
@@ -291,7 +289,7 @@ PEOPLE_ROLE_UPDATE_FLDS = api.model('UpdateRoleEntry', {
 class PersonAddRole(Resource):
     @api.response(HTTPStatus.OK, 'Success.')
     @api.response(HTTPStatus.NOT_ACCEPTABLE, 'Not acceptable.')
-    @sec.requires_permission('people', 'create', roles=['ED', 'ME'])
+    @sec.requires_permission('people', 'add_role', roles=['ED', 'ME'])
     @api.expect(PEOPLE_ROLE_UPDATE_FLDS)
     def put(self):
         data = request.get_json(force=True)
@@ -311,7 +309,7 @@ class PersonAddRole(Resource):
 class PersonDeleteRole(Resource):
     @api.response(HTTPStatus.OK, 'Success.')
     @api.response(HTTPStatus.NOT_ACCEPTABLE, 'Not acceptable.')
-    @sec.requires_permission('people', 'create', roles=['ED', 'ME'])
+    @sec.requires_permission('people', 'delete_role', roles=['ED', 'ME'])
     @api.expect(PEOPLE_ROLE_UPDATE_FLDS)
     def delete(self):
         data = request.get_json(force=True)
@@ -320,7 +318,7 @@ class PersonDeleteRole(Resource):
             role = data[ROLE]
             updated = ppl.delete_role(user_id, role)
             return {
-                MESSAGE: f'Role "{role}" added to {user_id}',
+                MESSAGE: f'Role "{role}" deleted on {user_id}',
                 RETURN:  updated
             }, HTTPStatus.OK
         except Exception as err:

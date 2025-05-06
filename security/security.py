@@ -223,9 +223,8 @@ def requires_permission(feature: str, action: str, roles=None):
             if not user:
                 raise Forbidden('User not found.')
 
-            # if roles
-            # and not set(user.get(ppl.ROLES, [])).intersection(roles):
-            #    raise Forbidden(f'User {uid} lacks required roles: {roles}')
+            if roles and not set(user.get(ppl.ROLES, [])).intersection(roles):
+                raise Forbidden(f'User {uid} lacks required roles: {roles}')
 
             return fn(*args, **kwargs)
         return wrapper
