@@ -181,15 +181,17 @@ def has_role(person: dict, role: str) -> bool:
 
 
 def get_masthead() -> dict:
-    """
-    Return only those people who are editors (ED) or managing editors (ME).
-    """
-    all_people = read()
-    return {
-        user_id: {'name': p[NAME], 'email': p[EMAIL], 'roles': p[ROLES]}
-        for user_id, p in all_people.items()
-        if any(r in ('ED', 'ME') for r in p.get(ROLES, []))
-    }
+    masthead = {}
+    mh_roles = rls.get_masthead_roles()
+    for mh_role, text in mh_roles.items():
+        people_w_role = []
+        people = read()
+        for _id, person in people.items():
+            if has_role(person, mh_role):
+                rec = create_mh_rec(person)
+                people_w_role.append(rec)
+        masthead[text] = people_w_role
+    return masthead
 
 
 def main():
