@@ -545,28 +545,32 @@ class ManuscriptUpdate(Resource):
         """
         Update manuscript information.
         """
-        user = auth.get_current_user()
-        payload = request.get_json()
-        targetEditor = payload.get('editor_email')
-        if not set(user['roles']).intersection({'ED','ME'}):
-            if user['email'] != payload.get('author_email'):
-                raise wz.Forbidden("You have no right to edit this manuscript")
+        payload = request.get_json(force=True)
         try:
-            manu_id = request.json.get(ms.MANU_ID)
-            title = request.json.get(ms.TITLE)
-            author = request.json.get(ms.AUTHOR)
-            author_email = request.json.get(ms.AUTHOR_EMAIL)
-            text = request.json.get(ms.TEXT)
-            abstract = request.json.get(ms.ABSTRACT)
-            editor_email = request.json.get(ms.EDITOR_EMAIL)
-            ret = ms.update(manu_id, title, author, author_email,
-                            text, abstract, editor_email)
-        except Exception as err:
-            raise wz.NotAcceptable(f'Could not update manuscript: {err=}')
+            manu_id = payload.get(ms.MANU_ID)
+            title = payload.get(ms.TITLE)
+            author = payload.get(ms.AUTHOR)
+            author_email = payload.get(ms.AUTHOR_EMAIL)
+            text = payload.get(ms.TEXT)
+            abstract = payload.get(ms.ABSTRACT)
+            editor_email = payload.get(ms.EDITOR_EMAIL)
+
+            ret = ms.update(
+                manu_id,
+                title,
+                author,
+                author_email,
+                text,
+                abstract,
+                editor_email
+            )
+        except ValueError as err:
+            raise wz.NotAcceptable(f'Could not update manuscript: {err}')
+
         return {
             MESSAGE: f'{manu_id} updated!',
-            RETURN: ret,
-        }
+            RETURN:  ret
+        }, HTTPStatus.OK
 
 
 MANUSCRIPT_UPDATE_STATE_FLDS = api.model('ManuscriptUpdateStateEntry', {

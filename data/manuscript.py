@@ -360,8 +360,8 @@ def update_state(manu_id: str, action: str, **kwargs):
     if action == ASSIGN_REF and kwargs.get('ref'):
         try:
             ppl.add_role(kwargs['ref'], 'RE')
-        except Exception as e:
-            print(f"Could not give RE role.")
+        except Exception:
+            print("Could not give RE role.")
     return manu_id
 
 
