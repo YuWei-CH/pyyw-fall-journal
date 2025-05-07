@@ -110,6 +110,10 @@ def assign_ref(manu_id: str, ref: str, extra=None) -> str:
                          "assigned to '{manuscript[TITLE]}'.")
     dbc.update(MANUSCRIPTS_COLLECT, {MANU_ID: to_object_id(manu_id)},
                {REFEREES: referees})
+    try:
+        ppl.add_role(ref, 'RE')
+    except Exception as e:
+        print(f"Could not give RE role to {ref}: {e}")
     return IN_REF_REV
 
 
@@ -353,6 +357,11 @@ def update_state(manu_id: str, action: str, **kwargs):
             HISTORY: manuscript[HISTORY] + [new_state],
         },
     )
+    if action == ASSIGN_REF and kwargs.get('ref'):
+        try:
+            ppl.add_role(kwargs['ref'], 'RE')
+        except Exception as e:
+            print(f"Could not give RE role.")
     return manu_id
 
 
