@@ -36,7 +36,7 @@ GOOD_USER_RECORD = {'email': TEST_EMAIL, 'roles': ['ME', 'RE', 'ED']}
 AUTH_HEADERS = {'X-User-Id': GOOD_USER_RECORD['email']}
 
 ADD_DELETE_ROLE_DATA = {
-    ID: TEST_EMAIL,
+    ID: TEST_MANU_ID,
     ep.ROLE: rls.TEST_CODE
 }
 
@@ -189,15 +189,8 @@ def test_update_people_failed(mock_update, mock_read_one):
     assert resp.status_code == HTTPStatus.INTERNAL_SERVER_ERROR
 
 
-ADD_DELETE_ROLE_DATA = {
-    EMAIL: TEST_EMAIL,
-    ep.ROLE: rls.TEST_CODE
-}
-
-
-@pytest.mark.skip
-@patch("data.people.read_one", autospec=True, return_value={"email": TEST_EMAIL, "roles": ["ME"]})
-@patch("data.people.add_role", autospec=True, return_value=TEST_EMAIL)
+@patch("data.people.read_one", autospec=True, return_value={"id": TEST_MANU_ID, "roles": ["ME"]})
+@patch("data.people.add_role", autospec=True, return_value=TEST_MANU_ID)
 def test_add_role_success(mock_add, mock_read_one):
     """PUT /people/add_role → 200 + {message, return} when add_role succeeds"""
     resp = TEST_CLIENT.put(
@@ -209,12 +202,12 @@ def test_add_role_success(mock_add, mock_read_one):
     assert resp.status_code == HTTPStatus.OK
     body = resp.get_json()
     assert ep.MESSAGE in body and ep.RETURN in body
-    assert TEST_EMAIL in body[ep.MESSAGE]
-    assert body[ep.RETURN] == TEST_EMAIL
-    mock_add.assert_called_once_with(TEST_EMAIL, rls.TEST_CODE)
+    assert TEST_MANU_ID in body[ep.MESSAGE]
+    assert body[ep.RETURN] == TEST_MANU_ID
+    mock_add.assert_called_once_with(TEST_MANU_ID, rls.TEST_CODE)
     
 
-@patch("data.people.read_one", autospec=True, return_value={"email": TEST_EMAIL, "roles": ["ME"]})
+@patch("data.people.read_one", autospec=True, return_value={"id": TEST_MANU_ID, "roles": ["ME"]})
 @patch("data.people.add_role", autospec=True, side_effect=ValueError("mock failure"))
 def test_add_role_failure(mock_add, mock_read_one):
     """PUT /people/add_role → 406 when add_role() raises"""
@@ -227,8 +220,8 @@ def test_add_role_failure(mock_add, mock_read_one):
     assert resp.status_code == HTTPStatus.NOT_ACCEPTABLE
     
 @pytest.mark.skip
-@patch("data.people.read_one", autospec=True, return_value={"email": TEST_EMAIL, "roles": ["ED"]})
-@patch("data.people.delete_role", autospec=True, return_value=TEST_EMAIL)
+@patch("data.people.read_one", autospec=True, return_value={"id": TEST_MANU_ID, "roles": ["ED"]})
+@patch("data.people.delete_role", autospec=True, return_value=TEST_MANU_ID)
 def test_delete_role_success(mock_delete, mock_read_one):
     """DELETE /people/delete_role → 200 + {message, return} when delete_role succeeds"""
     resp = TEST_CLIENT.delete(
@@ -240,11 +233,11 @@ def test_delete_role_success(mock_delete, mock_read_one):
     assert resp.status_code == HTTPStatus.OK
     body = resp.get_json()
     assert ep.MESSAGE in body and ep.RETURN in body
-    assert TEST_EMAIL in body[ep.MESSAGE]
-    assert body[ep.RETURN] == TEST_EMAIL
-    mock_delete.assert_called_once_with(TEST_EMAIL, rls.TEST_CODE)
+    assert TEST_MANU_ID in body[ep.MESSAGE]
+    assert body[ep.RETURN] == TEST_MANU_ID
+    mock_delete.assert_called_once_with(TEST_MANU_ID, rls.TEST_CODE)
 
-@patch("data.people.read_one", autospec=True, return_value={"email": TEST_EMAIL, "roles": ["ED"]})
+@patch("data.people.read_one", autospec=True, return_value={"id": TEST_MANU_ID, "roles": ["ED"]})
 @patch("data.people.delete_role", autospec=True, side_effect=ValueError("mock failure"))
 def test_delete_role_failure(mock_delete, mock_read_one):
     """DELETE /people/delete_role → 406 when delete_role() raises"""
