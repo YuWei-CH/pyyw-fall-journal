@@ -545,6 +545,12 @@ class ManuscriptUpdate(Resource):
         """
         Update manuscript information.
         """
+        user = auth.get_current_user()
+        payload = request.get_json()
+        targetEditor = payload.get('editor_email')
+        if not set(user['roles']).intersection({'ED','ME'}):
+            if user['email'] != payload.get('author_email'):
+                raise wz.Forbidden("You have no right to edit this manuscript")
         try:
             manu_id = request.json.get(ms.MANU_ID)
             title = request.json.get(ms.TITLE)
