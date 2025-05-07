@@ -218,8 +218,8 @@ def test_add_role_failure(mock_add, mock_read_one):
         content_type="application/json",
     )
     assert resp.status_code == HTTPStatus.NOT_ACCEPTABLE
-    
-@pytest.mark.skip
+
+
 @patch("data.people.read_one", autospec=True, return_value={"id": TEST_MANU_ID, "roles": ["ED"]})
 @patch("data.people.delete_role", autospec=True, return_value=TEST_MANU_ID)
 def test_delete_role_success(mock_delete, mock_read_one):
