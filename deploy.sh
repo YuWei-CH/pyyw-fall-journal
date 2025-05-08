@@ -1,5 +1,6 @@
 #!/bin/bash
 # This shell script deploys a new version to a server.
+set -e
 
 PROJ_DIR=pyyw-fall-journal
 VENV=pyyw-fall-journal-venv
