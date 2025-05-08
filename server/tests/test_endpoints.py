@@ -237,6 +237,7 @@ def test_delete_role_success(mock_delete, mock_read_one):
     assert body[ep.RETURN] == TEST_MANU_ID
     mock_delete.assert_called_once_with(TEST_MANU_ID, rls.TEST_CODE)
 
+
 @patch("data.people.read_one", autospec=True, return_value={"id": TEST_MANU_ID, "roles": ["ED"]})
 @patch("data.people.delete_role", autospec=True, side_effect=ValueError("mock failure"))
 def test_delete_role_failure(mock_delete, mock_read_one):
@@ -323,10 +324,12 @@ def test_delete_text_not_found(mock_delete):
     assert resp.status_code == NOT_FOUND
 
 
+@patch("data.people.read_one", autospec=True, return_value={"id": TEST_PAGE_NUMBER, "roles": ["ED"]})
 @patch('data.text.update', autospec=True, return_value=TEST_PAGE_NUMBER)
-def test_update_text(mock_update):
+def test_update_text(mock_update, mock_read_one):
     resp = TEST_CLIENT.put(
         f'{ep.TEXT_EP}/update',
+        headers=AUTH_HEADERS,
         data=json.dumps(TEXT_TEST_DATA),
         content_type='application/json'
     )
@@ -337,10 +340,12 @@ def test_update_text(mock_update):
     assert ep.RETURN in resp_json
 
 
+@patch("data.people.read_one", autospec=True, return_value={"id": TEST_PAGE_NUMBER, "roles": ["ED"]})
 @patch('data.text.update', autospec=True, side_effect=ValueError("Mocked Exception"))
-def test_update_text_failed(mock_update):
+def test_update_text_failed(mock_update, mock_read_one):
     resp = TEST_CLIENT.put(
         f'{ep.TEXT_EP}/update',
+        headers=AUTH_HEADERS,
         data=json.dumps(TEXT_TEST_DATA),
         content_type='application/json'
     )
