@@ -267,7 +267,7 @@ class PersonCreate(Resource):
             caller = request.headers.get('X-User-Id')
             user = ppl.read_one(caller) if caller else None
             if not user or not set(
-                    user.get('roles', [])).intersection({'ED', 'ME'}):
+                    user.get('roles', [])).intersection({'ED', 'ME', 'CE'}):
                 raise wz.Forbidden(
                     'Only ED/ME may add new people once seeded')
         return ppl.create(
@@ -289,7 +289,7 @@ PEOPLE_ROLE_UPDATE_FLDS = api.model('UpdateRoleEntry', {
 class PersonAddRole(Resource):
     @api.response(HTTPStatus.OK, 'Success.')
     @api.response(HTTPStatus.NOT_ACCEPTABLE, 'Not acceptable.')
-    @sec.requires_permission('people', 'add_role', roles=['ED', 'ME'])
+    @sec.requires_permission('people', 'add_role', roles=['ED', 'ME', 'CE'])
     @api.expect(PEOPLE_ROLE_UPDATE_FLDS)
     def put(self):
         data = request.get_json(force=True)
@@ -309,7 +309,7 @@ class PersonAddRole(Resource):
 class PersonDeleteRole(Resource):
     @api.response(HTTPStatus.OK, 'Success.')
     @api.response(HTTPStatus.NOT_ACCEPTABLE, 'Not acceptable.')
-    @sec.requires_permission('people', 'delete_role', roles=['ED', 'ME'])
+    @sec.requires_permission('people', 'delete_role', roles=['ED', 'ME', 'CE'])
     @api.expect(PEOPLE_ROLE_UPDATE_FLDS)
     def delete(self):
         data = request.get_json(force=True)
@@ -736,7 +736,8 @@ class ManuscriptRefereeActions(Resource):
 
 @api.route(f'{DEV_EP}/editor_dashboard')
 class EditorDashboardPermission(Resource):
-    @sec.requires_permission('editor_dashboard', 'access', roles=['ED', 'ME'])
+    @sec.requires_permission('editor_dashboard', 'access',
+                             roles=['ED', 'ME', 'CE'])
     def get(self):
         return {'message': 'Authorized'}, HTTPStatus.OK
 
@@ -794,7 +795,8 @@ class CommentDetail(Resource):
 
     @api.response(HTTPStatus.OK, 'Success.')
     @api.response(HTTPStatus.NOT_FOUND, 'No such comment.')
-    @sec.requires_permission('comment', 'delete', roles=['ED', 'ME', 'RE'])
+    @sec.requires_permission('comment', 'delete',
+                             roles=['ED', 'ME', 'RE', 'CE'])
     def delete(self, comment_id):
         """
         Delete a comment by ID.
@@ -814,7 +816,8 @@ class CommentCreate(Resource):
     @api.response(HTTPStatus.OK, 'Success.')
     @api.response(HTTPStatus.NOT_ACCEPTABLE, 'Not acceptable.')
     @api.expect(COMMENT_CREATE_FLDS)
-    @sec.requires_permission('comment', 'create', roles=['ED', 'ME', 'RE'])
+    @sec.requires_permission('comment', 'create',
+                             roles=['ED', 'ME', 'RE', 'CE'])
     def put(self):
         """
         Add a new comment.
@@ -840,7 +843,8 @@ class CommentUpdate(Resource):
     @api.response(HTTPStatus.OK, 'Success.')
     @api.response(HTTPStatus.NOT_ACCEPTABLE, 'Not acceptable.')
     @api.expect(COMMENT_UPDATE_FLDS)
-    @sec.requires_permission('comment', 'update', roles=['ED', 'ME', 'RE'])
+    @sec.requires_permission('comment', 'update',
+                             roles=['ED', 'ME', 'RE', 'CE'])
     def put(self):
         """
         Update comment text.
