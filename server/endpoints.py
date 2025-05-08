@@ -289,7 +289,6 @@ PEOPLE_ROLE_UPDATE_FLDS = api.model('UpdateRoleEntry', {
 class PersonAddRole(Resource):
     @api.response(HTTPStatus.OK, 'Success.')
     @api.response(HTTPStatus.NOT_ACCEPTABLE, 'Not acceptable.')
-    @sec.requires_permission('people', 'add_role', roles=['ED', 'ME', 'CE'])
     @api.expect(PEOPLE_ROLE_UPDATE_FLDS)
     def put(self):
         data = request.get_json(force=True)
@@ -404,6 +403,7 @@ class TextUpdate(Resource):
     """
     @api.response(HTTPStatus.OK, 'Success. ')
     @api.response(HTTPStatus.NOT_ACCEPTABLE, 'Not acceptable. ')
+    @sec.requires_permission('text', 'update', roles=['ED', 'ME', 'CE'])
     @api.expect(TEXT_FLDS)
     def put(self):
         """
